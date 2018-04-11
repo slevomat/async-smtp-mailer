@@ -148,11 +148,11 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 							? \React\Promise\reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException(self::INVALID_USERNAME_MESSAGE))
 							: \React\Promise\resolve();
 
-					} else {
-						return $passwordIsInvalid
-							? \React\Promise\reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException(self::INVALID_PASSWORD_MESSAGE))
-							: \React\Promise\resolve();
 					}
+
+					return $passwordIsInvalid
+						? \React\Promise\reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException(self::INVALID_PASSWORD_MESSAGE))
+						: \React\Promise\resolve();
 				}
 
 				return \React\Promise\resolve();

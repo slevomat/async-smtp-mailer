@@ -15,9 +15,11 @@ class DumpLogger extends \Consistence\ObjectPrototype implements \AsyncConnectio
 
 	public function log(string $message): void
 	{
-		if ($this->enableLogging) {
-			var_dump($message);
+		if (!$this->enableLogging) {
+			return;
 		}
+
+		var_dump($message);
 	}
 
 }

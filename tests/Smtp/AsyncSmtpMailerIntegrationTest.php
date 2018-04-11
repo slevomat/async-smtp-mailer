@@ -112,52 +112,54 @@ abstract class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\TestCase
 					$this->loop->stop();
 					throw new \Exception('Max loop running execution time exceeded.');
 				}
-				if ($this->exception !== null) {
-					if ($this->exception instanceof \Throwable) {
+				if ($this->exception === null) {
+					return;
+				}
+
+				if ($this->exception instanceof \Throwable) {
+					$this->loop->stop();
+					if ($this->exception instanceof \AsyncConnection\AsyncConnectionTimeoutException
+						&& $this->ignoreTimeoutErrors) {
+						return;
+					}
+
+					throw $this->exception;
+
+				} elseif ($this->exception === false) {
+					$timer->cancel();
+					$waitingInterval = $waitingInterval ?? self::WAIT_INTERVAL_IN_SECONDS;
+					$this->loop->addTimer($waitingInterval, function () use ($time, $subject): void {
 						$this->loop->stop();
-						if ($this->exception instanceof \AsyncConnection\AsyncConnectionTimeoutException
-							&& $this->ignoreTimeoutErrors) {
-							return;
+						$settings = $this->getSettings();
+						$inboxSettings = $settings->getTestInboxSettings();
+
+						$imap = imap_open(
+							$inboxSettings->getMailbox(),
+							$inboxSettings->getUsername(),
+							$inboxSettings->getPassword()
+						);
+						if ($imap === false) {
+							throw new \Exception(imap_last_error());
+						}
+						$searchQuery = sprintf('SUBJECT "%s" SINCE "%s" FROM "%s"', $time, date('Y-m-d', $time), $settings->getEmailFrom());
+						$emails = imap_search($imap, $searchQuery, SE_UID);
+						if ($emails === false) {
+							imap_close($imap);
+							$this->fail(sprintf('Message %s was not found in inbox', $subject));
+						}
+						$emails = array_filter($emails);
+						if (count($emails) !== 1) {
+							imap_close($imap);
+							$this->fail(sprintf('Message %s was not found in inbox', $subject));
 						}
 
-						throw $this->exception;
+						$overview = imap_fetch_overview($imap, (string) $emails[0], FT_UID);
+						imap_close($imap);
 
-					} elseif ($this->exception === false) {
-						$timer->cancel();
-						$waitingInterval = $waitingInterval ?? self::WAIT_INTERVAL_IN_SECONDS;
-						$this->loop->addTimer($waitingInterval, function () use ($time, $subject): void {
-							$this->loop->stop();
-							$settings = $this->getSettings();
-							$inboxSettings = $settings->getTestInboxSettings();
-
-							$imap = imap_open(
-								$inboxSettings->getMailbox(),
-								$inboxSettings->getUsername(),
-								$inboxSettings->getPassword()
-							);
-							if ($imap === false) {
-								throw new \Exception(imap_last_error());
-							}
-							$searchQuery = sprintf('SUBJECT "%s" SINCE "%s" FROM "%s"', $time, date('Y-m-d', $time), $settings->getEmailFrom());
-							$emails = imap_search($imap, $searchQuery, SE_UID);
-							if ($emails === false) {
-								imap_close($imap);
-								$this->fail(sprintf('Message %s was not found in inbox', $subject));
-							}
-							$emails = array_filter($emails);
-							if (count($emails) !== 1) {
-								imap_close($imap);
-								$this->fail(sprintf('Message %s was not found in inbox', $subject));
-							}
-
-							$overview = imap_fetch_overview($imap, (string) $emails[0], FT_UID);
-							imap_close($imap);
-
-							$this->assertCount(1, $emails, 'Message was not found in inbox');
-							$this->assertSame($subject, $overview[0]->subject, 'Message was not found in inbox');
-							$this->assertSame($settings->getEmailFrom(), $overview[0]->from);
-						});
-					}
+						$this->assertCount(1, $emails, 'Message was not found in inbox');
+						$this->assertSame($subject, $overview[0]->subject, 'Message was not found in inbox');
+						$this->assertSame($settings->getEmailFrom(), $overview[0]->from);
+					});
 				}
 			}
 		);

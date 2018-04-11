@@ -465,10 +465,12 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 		$startTime = time();
 		$this->loop->addPeriodicTimer($this->getTimerInterval(), function () use ($startTime, $asserts, $manager): void {
 			$this->checkLoopExecutionTime($this->loop, $startTime);
-			if (count($this->exceptions) === 2) {
-				$this->loop->stop();
-				$asserts($this->exceptions, $manager);
+			if (count($this->exceptions) !== 2) {
+				return;
 			}
+
+			$this->loop->stop();
+			$asserts($this->exceptions, $manager);
 		});
 		$this->loop->run();
 	}

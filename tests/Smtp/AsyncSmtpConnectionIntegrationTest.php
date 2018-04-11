@@ -74,10 +74,13 @@ abstract class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\TestC
 		$assertOnFail = function (\Throwable $exception) use ($settings): void {
 			$this->assertInstanceOf(\AsyncConnection\AsyncConnectionException::class, $exception);
 			$this->assertStringStartsWith(
-				sprintf('Connection to %s:%s failed: php_network_getaddresses: getaddrinfo failed',
+				sprintf(
+					'Connection to %s:%s failed: php_network_getaddresses: getaddrinfo failed',
 					$settings->getHost(),
 					$settings->getPort()
-				), $exception->getMessage());
+				),
+				$exception->getMessage()
+			);
 		};
 
 		$this->failedConnectionTest($settings, 'Connection with invalid host name was successful.', $assertOnFail);

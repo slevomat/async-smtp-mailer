@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="Slevomat Async SMTP Mailer" default="check">
+
+	<target name="check" depends="
+		composer-validate,
+		composer-install,
+		lint,
+		cs,
+		tests,
+		phpstan
+	"/>
+
+	<target name="composer-validate">
+		<exec
+				executable="composer"
+				logoutput="true"
+				passthru="true"
+				checkreturn="true"
+		>
+			<arg value="validate"/>
+		</exec>
+	</target>
+
+	<target name="composer-install">
+		<exec
+				executable="composer"
+				logoutput="true"
+				passthru="true"
+				checkreturn="true"
+		>
+			<arg value="install"/>
+		</exec>
+	</target>
+
+	<target name="lint">
+		<exec
+				executable="bin/parallel-lint"
+				logoutput="true"
+				passthru="true"
+				checkreturn="true"
+		>
+			<arg path="src" />
+			<arg path="tests" />
+			<arg path="tests-examples" />
+		</exec>
+	</target>
+
+	<target name="cs">
+		<exec
+				executable="bin/phpcs"
+				logoutput="true"
+				passthru="true"
+				checkreturn="true"
+		>
+			<arg value="--extensions=php"/>
+			<arg value="--encoding=utf-8"/>
+			<arg value="--tab-width=4"/>
+			<arg value="-sp"/>
+			<arg path="src"/>
+			<arg path="tests" />
+			<arg path="tests-examples" />
+		</exec>
+	</target>
+
+	<target name="cs-fix">
+		<exec
+				executable="bin/phpcbf"
+				logoutput="true"
+				passthru="true"
+				checkreturn="true"
+		>
+			<arg value="--extensions=php"/>
+			<arg value="--encoding=utf-8"/>
+			<arg value="--tab-width=4"/>
+			<arg value="-sp"/>
+			<arg path="src"/>
+			<arg path="tests" />
+			<arg path="tests-examples" />
+		</exec>
+	</target>
+
+	<target name="tests">
+		<exec
+				executable="bin/phpunit"
+				logoutput="true"
+				passthru="true"
+				checkreturn="true"
+		>
+			<arg value="-c"/>
+			<arg value="tests/phpunit.xml"/>
+			<arg path="tests"/>
+		</exec>
+	</target>
+
+	<target name="phpstan">
+		<exec
+				executable="bin/phpstan"
+				logoutput="true"
+				passthru="true"
+				checkreturn="true"
+		>
+			<arg value="analyse"/>
+			<arg value="-l"/>
+			<arg value="4"/>
+			<arg value="-c"/>
+			<arg path="phpstan.neon"/>
+			<arg path="src"/>
+			<arg path="tests"/>
+		</exec>
+	</target>
+
+</project>

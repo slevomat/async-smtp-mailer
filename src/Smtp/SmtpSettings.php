@@ -29,9 +29,7 @@ class SmtpSettings extends \Consistence\ObjectPrototype
 	)
 	{
 		$this->host = $host ?? ini_get('SMTP');
-		$this->port = $port !== null
-			? $port
-			: (ini_get('smtp_port') !== '' ? (int) ini_get('smtp_port') : 25);
+		$this->port = $port;
 		$this->hello = $hello;
 		$this->username = $username;
 		$this->password = $password;

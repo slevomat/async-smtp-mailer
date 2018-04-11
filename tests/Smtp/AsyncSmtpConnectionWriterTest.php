@@ -172,6 +172,9 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 
 	/**
 	 * @dataProvider dataSuccessfulWrites
+	 * @param AsyncMessage $message
+	 * @param string|null $actualFirstResponse
+	 * @param string|null $actualSecondResponse
 	 */
 	public function testSuccessfulWrites(
 		AsyncMessage $message,
@@ -239,6 +242,10 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 
 	/**
 	 * @dataProvider dataFailedWrites
+	 * @param AsyncMessage $message
+	 * @param string|null $actualFirstResponse
+	 * @param string|null $actualSecondResponse
+	 * @param string|null $expectedExceptionMessage
 	 */
 	public function testFailedWrites(
 		AsyncMessage $message,
@@ -288,8 +295,7 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				} else {
 					die('unexpected value' . $type);
 				}
-			}
-		);
+			});
 
 		return $connectionMock;
 	}
@@ -313,14 +319,16 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				$this->serverResponses[] = $secondResponse;
 				($this->doOnData)($secondResponse);
 			}
-			if ($this->exception !== null) {
-				$this->loop->stop();
-				if ($this->exception instanceof \Throwable) {
-					throw $this->exception;
+			if ($this->exception === null) {
+				return;
+			}
 
-				} else {
-					$this->assertTrue(true);
-				}
+			$this->loop->stop();
+			if ($this->exception instanceof \Throwable) {
+				throw $this->exception;
+
+			} else {
+				$this->assertTrue(true);
 			}
 		});
 
@@ -349,22 +357,23 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				$this->serverResponses[] = $secondResponse;
 				($this->doOnData)($secondResponse);
 			}
-			if ($this->exception !== null) {
-				$this->loop->stop();
-				if ($this->exception instanceof \Throwable) {
-					if ($expectedErrorMessage !== null) {
-						$this->assertSame($expectedErrorMessage, $this->exception->getMessage());
-						if ($expectedPreviousErrorMessage !== null) {
-							$this->assertSame($expectedPreviousErrorMessage, $this->exception->getPrevious()->getMessage());
-						}
+			if ($this->exception === null) {
+				return;
+			}
 
-					} else {
-						$this->assertTrue(true);
-					}
+			$this->loop->stop();
+			if (!($this->exception instanceof \Throwable)) {
+				throw new \Exception('Exception was not thrown.');
+			}
 
-				} else {
-					throw new \Exception('Exception was not thrown.');
+			if ($expectedErrorMessage !== null) {
+				$this->assertSame($expectedErrorMessage, $this->exception->getMessage());
+				if ($expectedPreviousErrorMessage !== null) {
+					$this->assertSame($expectedPreviousErrorMessage, $this->exception->getPrevious()->getMessage());
 				}
+
+			} else {
+				$this->assertTrue(true);
 			}
 		});
 

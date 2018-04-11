@@ -28,22 +28,24 @@ trait AsyncTestTrait
 		$loop->addPeriodicTimer($this->getTimerInterval(), function () use ($startTime, $assertOnSuccess, $loop): void {
 			$this->checkLoopExecutionTime($loop, $startTime);
 
-			if ($this->exception !== null) {
-				$loop->stop();
-				if ($this->exception instanceof \Throwable) {
-					if ($this->exception instanceof \AsyncConnection\AsyncConnectionTimeoutException
-						&& $this->ignoreTimeoutErrors
-					) {
-						return;
-					}
-					throw $this->exception;
+			if ($this->exception === null) {
+				return;
+			}
 
-				} elseif ($assertOnSuccess !== null) {
-					$assertOnSuccess();
-
-				} else {
-					$this->assertTrue(true);
+			$loop->stop();
+			if ($this->exception instanceof \Throwable) {
+				if ($this->exception instanceof \AsyncConnection\AsyncConnectionTimeoutException
+					&& $this->ignoreTimeoutErrors
+				) {
+					return;
 				}
+				throw $this->exception;
+
+			} elseif ($assertOnSuccess !== null) {
+				$assertOnSuccess();
+
+			} else {
+				$this->assertTrue(true);
 			}
 		});
 		$loop->run();
@@ -59,22 +61,24 @@ trait AsyncTestTrait
 		$loop->addPeriodicTimer($this->getTimerInterval(), function () use ($assertOnFail, $errorMessage, $startTime, $loop): void {
 			$this->checkLoopExecutionTime($loop, $startTime);
 
-			if ($this->exception !== null) {
-				$loop->stop();
-				if ($this->exception === false) {
-					$this->fail($errorMessage ?? 'No exception was thrown');
+			if ($this->exception === null) {
+				return;
+			}
 
-				} elseif ($this->exception instanceof \AsyncConnection\AsyncConnectionTimeoutException
-					&& $this->ignoreTimeoutErrors
-				) {
-					return;
+			$loop->stop();
+			if ($this->exception === false) {
+				$this->fail($errorMessage ?? 'No exception was thrown');
 
-				} elseif ($assertOnFail !== null) {
-					$assertOnFail($this->exception);
+			} elseif ($this->exception instanceof \AsyncConnection\AsyncConnectionTimeoutException
+				&& $this->ignoreTimeoutErrors
+			) {
+				return;
 
-				} else {
-					$this->assertTrue(true);
-				}
+			} elseif ($assertOnFail !== null) {
+				$assertOnFail($this->exception);
+
+			} else {
+				$this->assertTrue(true);
 			}
 		});
 		$loop->run();
@@ -114,10 +118,12 @@ trait AsyncTestTrait
 	): void
 	{
 		$maxLoopExecutionTime = $this->getMaxLoopExecutionTime();
-		if (time() - $startTime > $maxLoopExecutionTime) {
-			$loop->stop();
-			$this->fail(sprintf('Max loop running execution time of %ds exceeded.', $maxLoopExecutionTime));
+		if (time() - $startTime <= $maxLoopExecutionTime) {
+			return;
 		}
+
+		$loop->stop();
+		$this->fail(sprintf('Max loop running execution time of %ds exceeded.', $maxLoopExecutionTime));
 	}
 
 }

@@ -88,24 +88,24 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 					return $secondResponse->promise();
 				});
 
-		} else {
-			$deferred = new \React\Promise\Deferred();
-			$this->connection->write(sprintf('%s%s', $message->getText(), \Nette\Mail\Message::EOL));
-
-			if ($message instanceof AsyncSingleResponseMessage) {
-				$this->expectedResponses[] = [
-					$deferred,
-					$message->getExpectedResponseCodes(),
-					$message->getText(),
-					$message->getTextReplacement(),
-				];
-
-			} else {
-				$deferred->resolve();
-			}
-
-			return $deferred->promise();
 		}
+
+		$deferred = new \React\Promise\Deferred();
+		$this->connection->write(sprintf('%s%s', $message->getText(), \Nette\Mail\Message::EOL));
+
+		if ($message instanceof AsyncSingleResponseMessage) {
+			$this->expectedResponses[] = [
+				$deferred,
+				$message->getExpectedResponseCodes(),
+				$message->getText(),
+				$message->getTextReplacement(),
+			];
+
+		} else {
+			$deferred->resolve();
+		}
+
+		return $deferred->promise();
 	}
 
 	private function processDataResponse(string $data): void
@@ -133,7 +133,10 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 			$this->logger->log('code WRONG');
 			$errorMessage = sprintf(
 				"SMTP server didn't accept %s. Expected code: %s. Actual code: %s.",
-			$messageToReplace ? $messageToReplace : sprintf('message %s', $message), implode('|', $expectedCodes), $code);
+				$messageToReplace ? $messageToReplace : sprintf('message %s', $message),
+				implode('|', $expectedCodes),
+				$code
+			);
 			$tooManyMessagesData = [
 				'550 5.7.0 Requested action not taken: too many emails per second',
 			];
@@ -164,13 +167,17 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 
 		$dataProcessingPromise = $this->dataProcessingPromise !== null ? $this->dataProcessingPromise->promise() : \React\Promise\resolve();
 		$dataProcessingPromise->then(function () use ($exceptionMessage, $previousException): void {
-			if (count($this->expectedResponses) > 0) {
-				while (count($this->expectedResponses) > 0) {
-					list($deferred) = array_shift($this->expectedResponses);
-					if ($deferred !== null) {
-						$deferred->reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException($exceptionMessage, $previousException));
-					}
+			if (count($this->expectedResponses) <= 0) {
+				return;
+			}
+
+			while (count($this->expectedResponses) > 0) {
+				list($deferred) = array_shift($this->expectedResponses);
+				if ($deferred === null) {
+					continue;
 				}
+
+				$deferred->reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException($exceptionMessage, $previousException));
 			}
 		});
 	}

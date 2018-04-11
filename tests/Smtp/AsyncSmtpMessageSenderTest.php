@@ -51,6 +51,7 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 
 	/**
 	 * @dataProvider dataFailedSendingThrowsException
+	 * @param string $messageToFail
 	 */
 	public function testFailedSendingThrowsException(string $messageToFail): void
 	{

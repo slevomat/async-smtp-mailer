@@ -7,10 +7,10 @@ use AsyncConnection\Smtp\SmtpSettings;
 class IntegrationTestSettings extends \Consistence\ObjectPrototype
 {
 
-	/** @var boolean */
+	/** @var bool */
 	private $skipIntegrationTests;
 
-	/** @var boolean */
+	/** @var bool */
 	private $ignoreTimeoutErrors;
 
 	/** @var string */
