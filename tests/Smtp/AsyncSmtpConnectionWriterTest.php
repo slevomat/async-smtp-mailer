@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-// spell-check-ignore: EHLO mailtrap ESMTP STARTTLS dariel didn HELO
+// spell-check-ignore: dariel
 
 namespace AsyncConnection\Smtp;
 
@@ -209,20 +209,20 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				new AsyncDoubleResponseMessage('EHLO slevomat.local', [SmtpCode::SERVICE_READY], [SmtpCode::OK]),
 				'421 Service not available',
 				null,
-				'SMTP server didn\'t accept message EHLO slevomat.local. Expected code: 220. Actual code: 421.',
+				'SMTP server did not accept message EHLO slevomat.local. Expected code: 220. Actual code: 421.',
 			],
 			//invalid second response
 			[
 				new AsyncDoubleResponseMessage('EHLO slevomat.local', [SmtpCode::SERVICE_READY], [SmtpCode::OK]),
 				'220 mailtrap.io ESMTP ready',
 				'421 Service not available',
-				'SMTP server didn\'t accept message EHLO slevomat.local. Expected code: 250. Actual code: 421.',
+				'SMTP server did not accept message EHLO slevomat.local. Expected code: 250. Actual code: 421.',
 			],
 			[
 				new AsyncSingleResponseMessage('AUTH LOGIN', [SmtpCode::AUTH_CONTINUE]),
 				'421 Service not available',
 				null,
-				'SMTP server didn\'t accept message AUTH LOGIN. Expected code: 334. Actual code: 421.',
+				'SMTP server did not accept message AUTH LOGIN. Expected code: 334. Actual code: 421.',
 			],
 			[
 				new AsyncSingleResponseMessage('AUTH LOGIN', [SmtpCode::AUTH_CONTINUE]),
@@ -235,7 +235,7 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				new AsyncSingleResponseMessage('base64EncodedUsername', [SmtpCode::AUTH_CONTINUE], 'credentials'),
 				'421 Service not available',
 				null,
-				'SMTP server didn\'t accept credentials. Expected code: 334. Actual code: 421.',
+				'SMTP server did not accept credentials. Expected code: 334. Actual code: 421.',
 			],
 		];
 	}

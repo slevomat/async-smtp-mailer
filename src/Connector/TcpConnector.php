@@ -1,7 +1,5 @@
 <?php declare(strict_types = 1);
 
-// spell-check-ignore: errstr
-
 namespace AsyncConnection\Connector;
 
 class TcpConnector extends \Consistence\ObjectPrototype implements \React\Socket\ConnectorInterface
@@ -33,14 +31,14 @@ class TcpConnector extends \Consistence\ObjectPrototype implements \React\Socket
 		$socket = @stream_socket_client(
 			$uri,
 			$errno,
-			$errstr,
+			$error,
 			0,
 			STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT,
 			stream_context_create($this->context)
 		);
 		if ($socket === false) {
 			return \React\Promise\reject(new \RuntimeException(
-				sprintf('Connection to %s failed: %s', $uri, $errstr)
+				sprintf('Connection to %s failed: %s', $uri, $error)
 			));
 		}
 		stream_set_blocking($socket, false);

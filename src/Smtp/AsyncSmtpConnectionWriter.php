@@ -1,7 +1,5 @@
 <?php declare(strict_types = 1);
 
-// spell-check-ignore: didn
-
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
@@ -132,7 +130,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 		} else {
 			$this->logger->log('code WRONG');
 			$errorMessage = sprintf(
-				"SMTP server didn't accept %s. Expected code: %s. Actual code: %s.",
+				"SMTP server did not accept %s. Expected code: %s. Actual code: %s.",
 				$messageToReplace ? $messageToReplace : sprintf('message %s', $message),
 				implode('|', $expectedCodes),
 				$code

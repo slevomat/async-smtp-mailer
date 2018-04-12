@@ -1,7 +1,5 @@
 <?php declare(strict_types = 1);
 
-// spell-check-ignore: helo HELO EHLO
-
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;

@@ -1,7 +1,5 @@
 <?php declare(strict_types = 1);
 
-// spell-check-ignore: Mailtrap mailtrap
-
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessageQueueManager;

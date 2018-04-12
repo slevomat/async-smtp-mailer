@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-// spell-check-ignore: blabla didn getaddresses getaddrinfo
+// spell-check-ignore: blabla getaddresses getaddrinfo
 
 namespace AsyncConnection\Smtp;
 
@@ -47,7 +47,7 @@ abstract class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\TestC
 
 		$assertOnFail = function (\Throwable $exception): void {
 			$this->assertInstanceOf(\AsyncConnection\AsyncConnectionException::class, $exception);
-			$this->assertStringStartsWith('SMTP server didn\'t accept credentials.', $exception->getMessage());
+			$this->assertStringStartsWith('SMTP server did not accept credentials.', $exception->getMessage());
 		};
 
 		$this->failedConnectionTest($settings, 'Connection with invalid password was successful.', $assertOnFail);
@@ -60,7 +60,7 @@ abstract class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\TestC
 
 		$assertOnFail = function (\Throwable $exception): void {
 			$this->assertInstanceOf(\AsyncConnection\AsyncConnectionException::class, $exception);
-			$this->assertStringStartsWith('SMTP server didn\'t accept credentials.', $exception->getMessage());
+			$this->assertStringStartsWith('SMTP server did not accept credentials.', $exception->getMessage());
 		};
 
 		$this->failedConnectionTest($settings, 'Connection with invalid username was successful.', $assertOnFail);
