@@ -26,7 +26,9 @@
 		"phpstan/phpstan-phpunit": "^0.9.4",
 		"phpstan/phpstan-strict-rules": "^0.9",
 		"phpunit/phpunit": "^7.0.2",
-		"slevomat/coding-standard": "^4.5.2"
+		"slevomat/coding-standard": "^4.5.2",
+		"spell-checker/spell-checker": "v0.3.2",
+		"spell-checker/dictionary-en": "v0.1.1"
 	},
 	"config": {
 		"bin-dir": "bin"
