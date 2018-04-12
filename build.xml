@@ -7,7 +7,8 @@
 		lint,
 		cs,
 		tests,
-		phpstan
+		phpstan,
+		spell-check
 	"/>
 
 	<target name="composer-validate">
@@ -106,6 +107,15 @@
 			<arg path="phpstan.neon"/>
 			<arg path="src"/>
 			<arg path="tests"/>
+		</exec>
+	</target>
+
+	<target name="spell-check">
+		<exec executable="bin/spell-checker" logoutput="true" passthru="true" checkreturn="true">
+			<arg line="--config spell-checker.neon"/>
+			<arg line="--checkDictionaryFiles"/>
+			<arg line="--memoryLimit 1024M"/>
+			<arg line="--noLogo"/>
 		</exec>
 	</target>
 

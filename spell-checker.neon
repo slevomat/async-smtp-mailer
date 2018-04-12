@@ -1,0 +1,23 @@
+
+directories:
+	- src
+	- tests
+	- //
+
+dictionariesByFileName: []
+
+dictionariesByFileExtension:
+    md: en spell-checker-exceptions
+    neon: en spell-checker-exceptions
+    php: en php html iso spell-checker-exceptions
+    xml: en spell-checker-exceptions
+
+dictionaryDirectories:
+    - /
+    - vendor/spell-checker/spell-checker
+    - vendor/spell-checker/dictionary-en
+
+checkLocalIgnores: true
+
+dictionaryFilesToCheck:
+    - spell-checker-exceptions.dic
