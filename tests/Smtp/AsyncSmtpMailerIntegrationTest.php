@@ -4,9 +4,8 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessageQueueManager;
 use AsyncConnection\Connector\ConnectorFactory;
-use AsyncConnection\IntegrationTestSettings;
 
-abstract class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\TestCase
+class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCase
 {
 
 	use \AsyncConnection\AsyncTestTrait;
@@ -23,8 +22,6 @@ abstract class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\TestCase
 
 	/** @var \AsyncConnection\Log\DumpLogger */
 	private $logger;
-
-	abstract public function getSettings(): IntegrationTestSettings;
 
 	protected function setUp(): void
 	{

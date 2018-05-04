@@ -1,0 +1,15 @@
+parameters:
+	emailFrom: __EMAIL_FROM__
+	emailTo: __EMAIL_TO__
+	ignoreTimeoutErrors: false
+	skipIntegrationTests: true
+	smtpSettings:
+		host: __SMTP_HOST__
+		port: 2525
+		hello: __HELLO_MESSAGE__
+		username: __USERNAME__
+		password: __PASSWORD__
+	testInboxSettings:
+		mailbox: __IMAP_INBOX_ADDRESS__
+		username: __USERNAME__
+		password: __PASSWORD__

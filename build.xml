@@ -42,7 +42,6 @@
 		>
 			<arg path="src" />
 			<arg path="tests" />
-			<arg path="tests-examples" />
 		</exec>
 	</target>
 
@@ -59,7 +58,6 @@
 			<arg value="-sp"/>
 			<arg path="src"/>
 			<arg path="tests" />
-			<arg path="tests-examples" />
 		</exec>
 	</target>
 
@@ -76,7 +74,6 @@
 			<arg value="-sp"/>
 			<arg path="src"/>
 			<arg path="tests" />
-			<arg path="tests-examples" />
 		</exec>
 	</target>
 

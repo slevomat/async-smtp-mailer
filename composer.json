@@ -13,6 +13,7 @@
 	"require": {
 		"php-64bit": "~7.2",
 		"consistence/consistence": "^1.0.2",
+		"nette/di": "^2.4.11",
 		"nette/mail": "^2.4.4",
 		"react/event-loop": "^0.4.3",
 		"react/promise": "^2.5.1",
@@ -37,6 +38,6 @@
 		"psr-4": {"AsyncConnection\\": ["src/"]}
 	},
 	"autoload-dev": {
-		"classmap": ["tests", "tests-examples"]
+		"classmap": ["tests"]
 	}
 }

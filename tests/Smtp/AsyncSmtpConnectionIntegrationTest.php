@@ -6,9 +6,8 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncConnectionManager;
 use AsyncConnection\Connector\ConnectorFactory;
-use AsyncConnection\IntegrationTestSettings;
 
-abstract class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\TestCase
+class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTestCase
 {
 
 	use \AsyncConnection\AsyncTestTrait;
@@ -18,8 +17,6 @@ abstract class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\TestC
 
 	/** @var \AsyncConnection\Log\DumpLogger */
 	private $logger;
-
-	abstract public function getSettings(): IntegrationTestSettings;
 
 	protected function setUp(): void
 	{
@@ -72,7 +69,7 @@ abstract class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\TestC
 		$settings->updateHost('nonexistent.domain');
 
 		$assertOnFail = function (\Throwable $exception) use ($settings): void {
-			$this->assertInstanceOf(\AsyncConnection\AsyncConnectionException::class, $exception);
+			$this->assertInstanceOf(\RuntimeException::class, $exception);
 			$this->assertStringStartsWith(
 				sprintf(
 					'Connection to %s:%s failed: php_network_getaddresses: getaddrinfo failed',
