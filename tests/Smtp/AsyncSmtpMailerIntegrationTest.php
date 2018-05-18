@@ -121,7 +121,7 @@ class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCas
 					throw $this->exception;
 
 				} elseif ($this->exception === false) {
-					$timer->cancel();
+					$this->loop->cancelTimer($timer);
 					$waitingInterval = $waitingInterval ?? self::WAIT_INTERVAL_IN_SECONDS;
 					$this->loop->addTimer($waitingInterval, function () use ($time, $subject): void {
 						$this->loop->stop();
