@@ -115,7 +115,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 			throw new \AsyncConnection\Smtp\AsyncSmtpConnectionException(sprintf('Received unexpected data from server: %s.', $data));
 		}
 
-		list($deferred, $expectedCodes, $message, $messageToReplace) = array_shift($this->expectedResponses);
+		[$deferred, $expectedCodes, $message, $messageToReplace] = array_shift($this->expectedResponses);
 
 		if (preg_match('~^[\d]{3}$~i', $data) !== 1
 			&& preg_match('~^[\d]{3}[^\d]+~i', $data) !== 1) {
@@ -170,7 +170,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 			}
 
 			while (count($this->expectedResponses) > 0) {
-				list($deferred) = array_shift($this->expectedResponses);
+				[$deferred] = array_shift($this->expectedResponses);
 				if ($deferred === null) {
 					continue;
 				}
