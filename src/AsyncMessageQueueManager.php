@@ -113,46 +113,46 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 				return \React\Promise\resolve();
 			}
 		)->then(
-			function () use ($message, $requestsCounter) {
+			function () use ($requestsCounter) {
 				$this->log('started', $requestsCounter);
 
-				return $this->asyncConnectionManager->connect()->then(
-					function (AsyncConnectionResult $result) use ($message, $requestsCounter) {
-						$this->log('connected', $requestsCounter);
+				return $this->asyncConnectionManager->connect();
+			}
+		)->then(
+			function (AsyncConnectionResult $result) use ($message, $requestsCounter) {
+				$this->log('connected', $requestsCounter);
 
-						$sendingPromise = new \React\Promise\Deferred();
-						$this->loop->addTimer($this->minIntervalBetweenMessages, function () use ($sendingPromise, $message, $result, $requestsCounter): void {
-							$this->asyncMessageSender->sendMessage($result->getWriter(), $message)
-								->then(
-									function () use ($requestsCounter, $result, $sendingPromise): void {
-										if ($result->hasConnectedToServer()) {
-											self::$sentMessagesCount = 1;
-										} else {
-											++self::$sentMessagesCount;
-										}
-										$this->log('sending ok', $requestsCounter);
-										$this->lastSentMessageTime = time();
-										$sendingPromise->resolve();
-										$this->finishWithSuccess($requestsCounter);
-									},
-									function (\Throwable $exception) use ($requestsCounter, $sendingPromise): void {
-										$this->log('sending failed', $requestsCounter);
-										$sendingPromise->reject($exception);
-										$this->forceReconnect = true;
-										$this->finishWithError($exception, $requestsCounter);
-									}
-								);
-						});
+				$sendingPromise = new \React\Promise\Deferred();
+				$this->loop->addTimer($this->minIntervalBetweenMessages, function () use ($sendingPromise, $message, $result, $requestsCounter): void {
+					$this->asyncMessageSender->sendMessage($result->getWriter(), $message)
+						->then(
+							function () use ($requestsCounter, $result, $sendingPromise): void {
+								if ($result->hasConnectedToServer()) {
+									self::$sentMessagesCount = 1;
+								} else {
+									++self::$sentMessagesCount;
+								}
+								$this->log('sending ok', $requestsCounter);
+								$this->lastSentMessageTime = time();
+								$sendingPromise->resolve();
+								$this->finishWithSuccess($requestsCounter);
+							},
+							function (\Throwable $exception) use ($requestsCounter, $sendingPromise): void {
+								$this->log('sending failed', $requestsCounter);
+								$sendingPromise->reject($exception);
+								$this->forceReconnect = true;
+								$this->finishWithError($exception, $requestsCounter);
+							}
+						);
+				});
 
-						return $sendingPromise->promise();
-					},
-					function (\Throwable $exception) use ($requestsCounter): void {
-						$this->log('connection failed', $requestsCounter);
-						$this->finishWithError($exception, $requestsCounter);
+				return $sendingPromise->promise();
+			},
+			function (\Throwable $exception) use ($requestsCounter): void {
+				$this->log('connection failed', $requestsCounter);
+				$this->finishWithError($exception, $requestsCounter);
 
-						throw $exception;
-					}
-				);
+				throw $exception;
 			}
 		);
 	}
