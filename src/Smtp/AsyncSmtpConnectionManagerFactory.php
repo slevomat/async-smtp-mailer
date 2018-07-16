@@ -4,7 +4,6 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncConnectionManager;
 use AsyncConnection\Connector\ConnectorFactory;
-use AsyncConnection\Log\Logger;
 
 class AsyncSmtpConnectionManagerFactory extends \Consistence\ObjectPrototype
 {
@@ -15,7 +14,7 @@ class AsyncSmtpConnectionManagerFactory extends \Consistence\ObjectPrototype
 	/** @var \AsyncConnection\Connector\ConnectorFactory */
 	private $connectorFactory;
 
-	/** @var \AsyncConnection\Log\Logger */
+	/** @var \Psr\Log\LoggerInterface */
 	private $logger;
 
 	/** @var \AsyncConnection\Smtp\SmtpSettings */
@@ -24,7 +23,7 @@ class AsyncSmtpConnectionManagerFactory extends \Consistence\ObjectPrototype
 	public function __construct(
 		AsyncSmtpConnectionWriterFactory $writerFactory,
 		ConnectorFactory $connectorFactory,
-		Logger $logger,
+		\Psr\Log\LoggerInterface $logger,
 		SmtpSettings $smtpSettings
 	)
 	{

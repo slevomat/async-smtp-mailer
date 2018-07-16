@@ -2,8 +2,6 @@
 
 namespace AsyncConnection;
 
-use AsyncConnection\Log\DumpLogger;
-
 trait AsyncTestTrait
 {
 
@@ -107,9 +105,9 @@ trait AsyncTestTrait
 		return $this->customMaxLoopExecutionTime ?? 15;
 	}
 
-	public function getLogger(): DumpLogger
+	public function getLogger(): \Psr\Log\LoggerInterface
 	{
-		return new DumpLogger(false);
+		return new \Psr\Log\NullLogger();
 	}
 
 	private function checkLoopExecutionTime(

@@ -3,7 +3,6 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
-use AsyncConnection\Log\Logger;
 
 class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements \AsyncConnection\AsyncConnectionWriter
 {
@@ -14,7 +13,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 	/** @var \React\Socket\ConnectionInterface */
 	private $connection;
 
-	/** @var \AsyncConnection\Log\Logger */
+	/** @var \Psr\Log\LoggerInterface */
 	private $logger;
 
 	/** @var \React\Promise\Deferred|null */
@@ -22,7 +21,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 
 	public function __construct(
 		\React\Socket\ConnectionInterface $connection,
-		Logger $logger
+		\Psr\Log\LoggerInterface $logger
 	)
 	{
 		if (!$connection->isReadable() || !$connection->isWritable()) {
@@ -56,10 +55,10 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 
 	public function write(AsyncMessage $message): \React\Promise\ExtendedPromiseInterface
 	{
-		$this->logger->log($message->getText());
+		$this->logger->debug($message->getText());
 
 		if (!$this->isValid()) {
-			$this->logger->log('stream not valid');
+			$this->logger->error('stream not valid');
 			return \React\Promise\reject(new \AsyncConnection\Smtp\InvalidSmtpConnectionException());
 		}
 
@@ -110,7 +109,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 	{
 		$this->dataProcessingPromise = new \React\Promise\Deferred();
 
-		$this->logger->log('RECEIVED DATA: ' . $data);
+		$this->logger->debug('RECEIVED DATA: ' . $data);
 		if (count($this->expectedResponses) === 0) {
 			throw new \AsyncConnection\Smtp\AsyncSmtpConnectionException(sprintf('Received unexpected data from server: %s.', $data));
 		}
@@ -124,11 +123,11 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 
 		$code = (int) $data;
 		if (in_array($code, $expectedCodes, true)) {
-			$this->logger->log('code OK');
+			$this->logger->debug('code OK');
 			$deferred->resolve();
 
 		} else {
-			$this->logger->log('code WRONG');
+			$this->logger->debug('code WRONG');
 			$errorMessage = sprintf(
 				'SMTP server did not accept %s. Expected code: %s. Actual code: %s.',
 				$messageToReplace ? $messageToReplace : sprintf('message %s', $message),
@@ -158,7 +157,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 		?\Throwable $previousException = null
 	): void
 	{
-		$this->logger->log($debugMessage);
+		$this->logger->debug($debugMessage);
 		if (count($this->expectedResponses) === 0) {
 			return;
 		}

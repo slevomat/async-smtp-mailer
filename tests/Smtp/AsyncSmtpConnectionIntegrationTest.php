@@ -15,7 +15,7 @@ class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTes
 	/** @var \React\EventLoop\LoopInterface */
 	private $loop;
 
-	/** @var \AsyncConnection\Log\DumpLogger */
+	/** @var \Psr\Log\LoggerInterface */
 	private $logger;
 
 	protected function setUp(): void

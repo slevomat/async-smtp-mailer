@@ -2,7 +2,6 @@
 
 namespace AsyncConnection;
 
-use AsyncConnection\Log\Logger;
 use AsyncConnection\Timer\PromiseTimer;
 
 class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
@@ -20,7 +19,7 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 	/** @var \AsyncConnection\AsyncConnectionManager */
 	private $asyncConnectionManager;
 
-	/** @var \AsyncConnection\Log\Logger */
+	/** @var \Psr\Log\LoggerInterface */
 	private $logger;
 
 	/** @var \AsyncConnection\Timer\PromiseTimer */
@@ -56,7 +55,7 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 	public function __construct(
 		AsyncMessageSender $asyncMessageSender,
 		AsyncConnectionManager $asyncConnectionManager,
-		Logger $logger,
+		\Psr\Log\LoggerInterface $logger,
 		PromiseTimer $promiseTimer,
 		?float $maxIntervalBetweenMessages = null,
 		?int $maxMessagesPerConnection = null,
@@ -225,7 +224,7 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 
 	private function log(string $message, int $requestNumber): void
 	{
-		$this->logger->log(sprintf('Request #%d: %s', $requestNumber, $message));
+		$this->logger->debug(sprintf('Request #%d: %s', $requestNumber, $message));
 	}
 
 }

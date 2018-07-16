@@ -13,7 +13,7 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 	/** @var bool */
 	private $streamIsValid = true;
 
-	/** @var \AsyncConnection\Log\DumpLogger */
+	/** @var \Psr\Log\LoggerInterface */
 	private $logger;
 
 	protected function setUp(): void

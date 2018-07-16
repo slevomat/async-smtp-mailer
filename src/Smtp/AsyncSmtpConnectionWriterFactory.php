@@ -2,15 +2,13 @@
 
 namespace AsyncConnection\Smtp;
 
-use AsyncConnection\Log\Logger;
-
 class AsyncSmtpConnectionWriterFactory extends \Consistence\ObjectPrototype
 {
 
-	/** @var \AsyncConnection\Log\Logger */
+	/** @var \Psr\Log\LoggerInterface */
 	private $logger;
 
-	public function __construct(Logger $logger)
+	public function __construct(\Psr\Log\LoggerInterface $logger)
 	{
 		$this->logger = $logger;
 	}

@@ -36,7 +36,7 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 	/** @var string[] */
 	private $serverResponses;
 
-	/** @var \AsyncConnection\Log\Logger */
+	/** @var \Psr\Log\LoggerInterface */
 	private $logger;
 
 	protected function setUp(): void

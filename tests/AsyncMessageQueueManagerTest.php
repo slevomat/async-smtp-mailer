@@ -30,7 +30,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 	/** @var int */
 	private $connectsCount = 0;
 
-	/** @var \AsyncConnection\Log\DumpLogger */
+	/** @var \Psr\Log\LoggerInterface */
 	private $logger;
 
 	public function setUp(): void

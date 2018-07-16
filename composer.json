@@ -15,6 +15,7 @@
 		"consistence/consistence": "^1.0.2",
 		"nette/di": "^2.4.11",
 		"nette/mail": "^2.4.4",
+		"psr/log": "^1.0.2",
 		"react/event-loop": "^0.5.2",
 		"react/promise": "^2.5.1",
 		"react/socket": "^0.8.10"
