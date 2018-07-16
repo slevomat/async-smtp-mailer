@@ -2,6 +2,8 @@
 
 namespace AsyncConnection;
 
+use AsyncConnection\Timer\PromiseTimer;
+
 class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 {
 
@@ -325,10 +327,10 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 	): AsyncMessageQueueManager
 	{
 		$manager = new AsyncMessageQueueManager(
-			$this->loop,
 			$this->senderMock,
 			$this->connectionManagerMock,
 			$this->logger,
+			new PromiseTimer($this->loop),
 			$maxIntervalBetweenMessages,
 			$maxMessagesPerConnection,
 			$minIntervalBetweenMessages

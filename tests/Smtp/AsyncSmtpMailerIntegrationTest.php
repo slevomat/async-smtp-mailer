@@ -4,6 +4,7 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessageQueueManager;
 use AsyncConnection\Connector\ConnectorFactory;
+use AsyncConnection\Timer\PromiseTimer;
 
 class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCase
 {
@@ -73,10 +74,10 @@ class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCas
 		$sender = new AsyncSmtpMessageSender();
 
 		return new AsyncMessageQueueManager(
-			$this->loop,
 			$sender,
 			$managerFactory->create(),
-			$this->logger
+			$this->logger,
+			new PromiseTimer($this->loop)
 		);
 	}
 

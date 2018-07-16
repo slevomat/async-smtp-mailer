@@ -3,6 +3,7 @@
 namespace AsyncConnection;
 
 use AsyncConnection\Log\Logger;
+use AsyncConnection\Timer\PromiseTimer;
 
 class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 {
@@ -13,9 +14,6 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 
 	private const MAX_MESSAGES_PER_CONNECTION = 500;
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
-
 	/** @var \AsyncConnection\AsyncMessageSender */
 	private $asyncMessageSender;
 
@@ -24,6 +22,9 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 
 	/** @var \AsyncConnection\Log\Logger */
 	private $logger;
+
+	/** @var \AsyncConnection\Timer\PromiseTimer */
+	private $promiseTimer;
 
 	/** @var mixed[] */
 	private $messageQueue = [];
@@ -49,23 +50,27 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 	/** @var bool */
 	private $forceReconnect = false;
 
+	/** @var \React\Promise\ExtendedPromiseInterface */
+	private $minIntervalPromise;
+
 	public function __construct(
-		\React\EventLoop\LoopInterface $loop,
 		AsyncMessageSender $asyncMessageSender,
 		AsyncConnectionManager $asyncConnectionManager,
 		Logger $logger,
+		PromiseTimer $promiseTimer,
 		?float $maxIntervalBetweenMessages = null,
 		?int $maxMessagesPerConnection = null,
 		?float $minIntervalBetweenMessages = null
 	)
 	{
-		$this->loop = $loop;
 		$this->asyncMessageSender = $asyncMessageSender;
 		$this->asyncConnectionManager = $asyncConnectionManager;
 		$this->logger = $logger;
+		$this->promiseTimer = $promiseTimer;
 		$this->maxIntervalBetweenMessages = $maxIntervalBetweenMessages ?? self::MAX_INTERVAL_BETWEEN_MESSAGES;
 		$this->minIntervalBetweenMessages = $minIntervalBetweenMessages ?? self::MIN_INTERVAL_BETWEEN_MESSAGES;
 		$this->maxMessagesPerConnection = $maxMessagesPerConnection ?? self::MAX_MESSAGES_PER_CONNECTION;
+		$this->minIntervalPromise = \React\Promise\resolve();
 	}
 
 	/**
@@ -119,39 +124,40 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 				return $this->asyncConnectionManager->connect();
 			}
 		)->then(
-			function (AsyncConnectionResult $result) use ($message, $requestsCounter) {
+			function (AsyncConnectionResult $result) use ($requestsCounter) {
 				$this->log('connected', $requestsCounter);
 
-				$sendingPromise = new \React\Promise\Deferred();
-				$this->loop->addTimer($this->minIntervalBetweenMessages, function () use ($sendingPromise, $message, $result, $requestsCounter): void {
-					$this->asyncMessageSender->sendMessage($result->getWriter(), $message)
-						->then(
-							function () use ($requestsCounter, $result, $sendingPromise): void {
-								if ($result->hasConnectedToServer()) {
-									self::$sentMessagesCount = 1;
-								} else {
-									++self::$sentMessagesCount;
-								}
-								$this->log('sending ok', $requestsCounter);
-								$this->lastSentMessageTime = time();
-								$sendingPromise->resolve();
-								$this->finishWithSuccess($requestsCounter);
-							},
-							function (\Throwable $exception) use ($requestsCounter, $sendingPromise): void {
-								$this->log('sending failed', $requestsCounter);
-								$sendingPromise->reject($exception);
-								$this->forceReconnect = true;
-								$this->finishWithError($exception, $requestsCounter);
-							}
-						);
+				return $this->minIntervalPromise->then(function () use ($result) {
+					return \React\Promise\resolve($result);
 				});
-
-				return $sendingPromise->promise();
 			},
 			function (\Throwable $exception) use ($requestsCounter): void {
 				$this->log('connection failed', $requestsCounter);
 				$this->finishWithError($exception, $requestsCounter);
 
+				throw $exception;
+			}
+		)->then(
+			function (AsyncConnectionResult $result) use ($message) {
+				return $this->asyncMessageSender->sendMessage($result->getWriter(), $message)->then(function () use ($result) {
+					return \React\Promise\resolve($result);
+				});
+			}
+		)->then(
+			function (AsyncConnectionResult $result) use ($requestsCounter): void {
+				if ($result->hasConnectedToServer()) {
+					self::$sentMessagesCount = 1;
+				} else {
+					++self::$sentMessagesCount;
+				}
+				$this->log('sending ok', $requestsCounter);
+				$this->lastSentMessageTime = time();
+				$this->finishWithSuccess($requestsCounter);
+			},
+			function (\Throwable $exception) use ($requestsCounter): void {
+				$this->log('sending failed', $requestsCounter);
+				$this->forceReconnect = true;
+				$this->finishWithError($exception, $requestsCounter);
 				throw $exception;
 			}
 		);
@@ -184,12 +190,19 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 	{
 		unset($this->messageQueue[$requestsCounter]);
 		$this->processingRequests[$requestsCounter]->reject($exception);
+		$this->minIntervalPromise = \React\Promise\resolve();
 	}
 
 	private function finishWithSuccess(int $requestsCounter): void
 	{
 		unset($this->messageQueue[$requestsCounter]);
 		$this->processingRequests[$requestsCounter]->resolve();
+
+		if ($this->minIntervalBetweenMessages === null) {
+			$this->minIntervalPromise = \React\Promise\resolve();
+		} else {
+			$this->minIntervalPromise = $this->promiseTimer->wait($this->minIntervalBetweenMessages);
+		}
 	}
 
 	private function shouldReconnect(): bool
