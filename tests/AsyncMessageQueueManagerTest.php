@@ -90,11 +90,10 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 			->willReturn(\React\Promise\resolve(new AsyncConnectionResult($this->writerMock, true)));
 
 		$this->senderMock->method('sendMessage')
-			->willReturn(\React\Promise\reject(new \TypeError('Type error')));
+			->willReturn(\React\Promise\reject(new \Exception('Unexpected error')));
 
 		$assertOnFail = function (\Throwable $e): void {
-			$this->assertInstanceOf(\TypeError::class, $e);
-			$this->assertSame('Type error', $e->getMessage());
+			$this->assertSame('Unexpected error', $e->getMessage());
 		};
 
 		$this->runFailedSendingTest(
