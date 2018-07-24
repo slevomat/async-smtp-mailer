@@ -24,12 +24,12 @@
 		"consistence/coding-standard": "^3.0.1",
 		"jakub-onderka/php-parallel-lint": "^1.0.0",
 		"phing/phing": "^2.16.0",
-		"phpstan/phpstan": "^0.9.2",
-		"phpstan/phpstan-phpunit": "^0.9.4",
-		"phpstan/phpstan-strict-rules": "^0.9",
+		"phpstan/phpstan": "^0.10",
+		"phpstan/phpstan-phpunit": "^0.10",
+		"phpstan/phpstan-strict-rules": "^0.10",
 		"phpunit/phpunit": "^7.0.2",
 		"slevomat/coding-standard": "^4.5.2",
-		"spell-checker/spell-checker": "v0.3.2",
+		"spell-checker/spell-checker": "v0.3.6",
 		"spell-checker/dictionary-en": "v0.1.1"
 	},
 	"config": {
