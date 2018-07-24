@@ -8,26 +8,14 @@ class AsyncZeroResponseMessage extends \Consistence\ObjectPrototype implements \
 	/** @var string */
 	private $text;
 
-	/** @var string|null */
-	private $textReplacement;
-
-	public function __construct(
-		string $text,
-		?string $textReplacement = null
-	)
+	public function __construct(string $text)
 	{
 		$this->text = $text;
-		$this->textReplacement = $textReplacement;
 	}
 
 	public function getText(): string
 	{
 		return $this->text;
-	}
-
-	public function getTextReplacement(): ?string
-	{
-		return $this->textReplacement;
 	}
 
 }
