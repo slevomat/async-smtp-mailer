@@ -11,7 +11,7 @@ class SmtpSettings extends \Consistence\ObjectPrototype
 	/** @var int */
 	private $port;
 
-	/** @var string|null */
+	/** @var string */
 	private $hello;
 
 	/** @var string|null */
@@ -21,14 +21,14 @@ class SmtpSettings extends \Consistence\ObjectPrototype
 	private $password;
 
 	public function __construct(
-		?string $host,
+		string $host,
 		int $port,
-		?string $hello,
+		string $hello,
 		?string $username,
 		?string $password
 	)
 	{
-		$this->host = $host ?? ini_get('SMTP');
+		$this->host = $host;
 		$this->port = $port;
 		$this->hello = $hello;
 		$this->username = $username;
@@ -45,7 +45,7 @@ class SmtpSettings extends \Consistence\ObjectPrototype
 		return $this->port;
 	}
 
-	public function getHello(): ?string
+	public function getHello(): string
 	{
 		return $this->hello;
 	}

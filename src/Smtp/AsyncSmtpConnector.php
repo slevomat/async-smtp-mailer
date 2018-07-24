@@ -47,7 +47,7 @@ class AsyncSmtpConnector extends \Consistence\ObjectPrototype implements \AsyncC
 
 	private function greetServer(AsyncSmtpConnectionWriter $writer): \React\Promise\PromiseInterface
 	{
-		$self = $this->smtpSettings->getHello() ?: (isset($_SERVER['HTTP_HOST']) && preg_match('#^[\w.-]+\z#', $_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost');
+		$self = $this->smtpSettings->getHello();
 		$ehloMessage = new AsyncDoubleResponseMessage(sprintf('EHLO %s', $self), [SmtpCode::SERVICE_READY], [SmtpCode::OK]);
 
 		return $writer->write($ehloMessage)
