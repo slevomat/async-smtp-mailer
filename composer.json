@@ -16,9 +16,9 @@
 		"nette/di": "^2.4.11",
 		"nette/mail": "^2.4.4",
 		"psr/log": "^1.0.2",
-		"react/event-loop": "^0.5.2",
-		"react/promise": "^2.5.1",
-		"react/socket": "^0.8.10"
+		"react/event-loop": "^1.0.0",
+		"react/promise": "^2.7.0",
+		"react/socket": "^1.0.0"
 	},
 	"require-dev": {
 		"consistence/coding-standard": "^3.0.1",
