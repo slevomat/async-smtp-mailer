@@ -268,7 +268,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 	public function testSendingWhenPreviousConnectionFailed(): void
 	{
 		$this->connectionManagerMock->method('disconnect')
-			->willReturnCallback(function(): \React\Promise\ExtendedPromiseInterface {
+			->willReturnCallback(function (): \React\Promise\ExtendedPromiseInterface {
 				return \React\Promise\resolve();
 			});
 
