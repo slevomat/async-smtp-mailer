@@ -101,7 +101,7 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 	}
 
 	private function runSuccessfulSendingTest(
-		\Nette\Mail\Message $message,
+		MailMessage $message,
 		?\Closure $assertOnSuccess = null
 	): void
 	{
@@ -120,7 +120,7 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 	}
 
 	private function runFailedSendingTest(
-		\Nette\Mail\Message $message,
+		MailMessage $message,
 		string $errorMessage,
 		\Closure $assertOnFail
 	): void
@@ -139,9 +139,9 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 		$this->runFailedTest($this->loop, $assertOnFail, $errorMessage);
 	}
 
-	private function createMessage(?string $subject = 'TEST'): \Nette\Mail\Message
+	private function createMessage(?string $subject = 'TEST'): MailMessage
 	{
-		$message = new \Nette\Mail\Message();
+		$message = new MailMessage();
 		$message->setFrom('test@slevomat.cz');
 		$message->setSubject($subject);
 		$message->setHeader('To', ['test@seznam.cz' => null]);

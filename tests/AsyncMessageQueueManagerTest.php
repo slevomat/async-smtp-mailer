@@ -170,7 +170,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 		$this->exceptions = [];
 
 		$manager = $this->createManager();
-		$manager->send('a')->done(
+		$manager->send(new SimpleAsyncMessage('a'))->done(
 			function (): void {
 				$this->exceptions['first'] = false;
 			},
@@ -182,7 +182,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 		$this->assertSame(1, $manager->getQueuedMessagesCount(), 'Unexpected queued messages count.');
 		$this->assertSame(0, $manager->getSentMessagesCount(), 'Unexpected sent messages count');
 
-		$manager->send('b')->done(
+		$manager->send(new SimpleAsyncMessage('b'))->done(
 			function (): void {
 				$this->exceptions['second'] = false;
 			},
@@ -195,8 +195,8 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 		$firstMessage = array_shift($messages);
 		$lastMessage = array_pop($messages);
 		$this->assertSame(2, $manager->getQueuedMessagesCount(), 'Unexpected queued messages count.');
-		$this->assertSame('a', $firstMessage, 'Unexpected first emails subject');
-		$this->assertSame('b', $lastMessage, 'Unexpected second emails subject');
+		$this->assertSame('a', $firstMessage->getText(), 'Unexpected first emails subject');
+		$this->assertSame('b', $lastMessage->getText(), 'Unexpected second emails subject');
 
 		$this->loop->addPeriodicTimer($this->getTimerInterval(), function () use ($manager): void {
 			if (isset($this->exceptions['second'])) {
@@ -219,7 +219,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 						$this->assertSame(1, $manager->getQueuedMessagesCount(), 'Unexpected queued messages count.');
 						$messages = $manager->getQueuedMessages();
 						$message = array_shift($messages);
-						$this->assertSame('b', $message);
+						$this->assertSame('b', $message->getText());
 						$this->assertSame(1, $manager->getSentMessagesCount(), 'Unexpected sent messages count');
 
 					} catch (\Throwable $e) {
@@ -243,7 +243,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 
 		$manager = $this->createManager();
 
-		$manager->send('message')
+		$manager->send(new SimpleAsyncMessage('message'))
 			->done(
 				function (): void {
 				},
@@ -252,7 +252,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 				}
 			);
 
-		$manager->send('message')
+		$manager->send(new SimpleAsyncMessage('message'))
 			->done(
 				function (): void {
 					$this->setException(false);
@@ -350,7 +350,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 		?\Closure $assertOnSuccess = null
 	): void
 	{
-		$manager->send($message)
+		$manager->send(new SimpleAsyncMessage($message))
 			->done(
 				function (): void {
 					$this->setException(false);
@@ -370,7 +370,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 		\Closure $assertOnFail
 	): void
 	{
-		$manager->send($message)
+		$manager->send(new SimpleAsyncMessage($message))
 			->done(
 				function (): void {
 					$this->setException(false);
@@ -408,7 +408,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 
 		$manager = $this->createManager($maxIntervalBetweenMessages, $maxMessagesPerConnection);
 
-		$manager->send('message')
+		$manager->send(new SimpleAsyncMessage('message'))
 			->then(
 				function () use ($manager, $maxIntervalBetweenMessages): void {
 					try {
@@ -418,7 +418,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 							sleep($maxIntervalBetweenMessages + 1);
 						}
 
-						$manager->send('message')
+						$manager->send(new SimpleAsyncMessage('message'))
 							->done(
 								function (): void {
 									$this->setException(false);
@@ -448,7 +448,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 	private function runTwoRequestsTest(\Closure $asserts): void
 	{
 		$manager = $this->createManager();
-		$manager->send('message')
+		$manager->send(new SimpleAsyncMessage('message'))
 			->done(
 				function (): void {
 					$this->exceptions['first'] = false;
@@ -458,7 +458,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 				}
 			);
 
-		$manager->send('message')
+		$manager->send(new SimpleAsyncMessage('message'))
 			->done(
 				function (): void {
 					$this->exceptions['second'] = false;

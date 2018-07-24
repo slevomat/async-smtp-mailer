@@ -81,11 +81,11 @@ class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCas
 		);
 	}
 
-	private function getMessage(string $subject): \Nette\Mail\Message
+	private function getMessage(string $subject): \AsyncConnection\Smtp\MailMessage
 	{
 		$settings = $this->getSettings();
 
-		$message = new \Nette\Mail\Message();
+		$message = new MailMessage();
 		$message->setFrom($settings->getEmailFrom());
 		$message->setSubject($subject);
 		$message->setHeader('To', [$settings->getTestInboxSettings()->getUsername() => null]);

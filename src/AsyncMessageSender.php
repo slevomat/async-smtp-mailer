@@ -5,14 +5,9 @@ namespace AsyncConnection;
 interface AsyncMessageSender
 {
 
-	/**
-	 * @param \AsyncConnection\AsyncConnectionWriter $writer
-	 * @param mixed $message
-	 * @return \React\Promise\ExtendedPromiseInterface
-	 */
 	public function sendMessage(
 		AsyncConnectionWriter $writer,
-		$message
+		AsyncMessage $message
 	): \React\Promise\ExtendedPromiseInterface;
 
 }

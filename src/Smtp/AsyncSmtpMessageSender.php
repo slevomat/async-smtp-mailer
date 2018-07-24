@@ -3,18 +3,16 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncConnectionWriter;
+use AsyncConnection\AsyncMessage;
 
 class AsyncSmtpMessageSender extends \Consistence\ObjectPrototype implements \AsyncConnection\AsyncMessageSender
 {
 
-	/**
-	 * @param \AsyncConnection\AsyncConnectionWriter $writer
-	 * @param mixed $message
-	 * @return \React\Promise\ExtendedPromiseInterface
-	 */
-	public function sendMessage(AsyncConnectionWriter $writer, $message): \React\Promise\ExtendedPromiseInterface
+	public function sendMessage(AsyncConnectionWriter $writer, AsyncMessage $message): \React\Promise\ExtendedPromiseInterface
 	{
-		\Consistence\Type\Type::checkType($message, \Nette\Mail\Message::class);
+		if (!$message instanceof \Nette\Mail\Message) {
+			throw new \InvalidArgumentException('Only \Nette\Mail\Message is accepted');
+		}
 
 		$from = $message->getHeader('Return-Path') ?? key($message->getHeader('From'));
 

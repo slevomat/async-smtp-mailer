@@ -72,11 +72,7 @@ class AsyncMessageQueueManager extends \Consistence\ObjectPrototype
 		$this->minIntervalPromise = \React\Promise\resolve();
 	}
 
-	/**
-	 * @param mixed $message
-	 * @return \React\Promise\ExtendedPromiseInterface
-	 */
-	public function send($message): \React\Promise\ExtendedPromiseInterface
+	public function send(AsyncMessage $message): \React\Promise\ExtendedPromiseInterface
 	{
 		static $requestsCounter = 0;
 		$previousRequestsCount = $requestsCounter;
