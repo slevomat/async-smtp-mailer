@@ -110,8 +110,9 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 		$this->dataProcessingPromise = new \React\Promise\Deferred();
 
 		$this->logger->debug('RECEIVED DATA: ' . $data);
+
 		if (count($this->expectedResponses) === 0) {
-			throw new \AsyncConnection\Smtp\AsyncSmtpConnectionException(sprintf('Received unexpected data from server: %s.', $data));
+			return;
 		}
 
 		[$deferred, $expectedCodes, $message, $messageToReplace] = array_shift($this->expectedResponses);

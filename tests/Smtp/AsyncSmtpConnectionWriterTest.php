@@ -58,15 +58,6 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 		new AsyncSmtpConnectionWriter($connectionMock, $this->logger);
 	}
 
-	public function testUnexpectedDataThrowException(): void
-	{
-		$this->expectException(\AsyncConnection\Smtp\AsyncSmtpConnectionException::class);
-		$this->expectExceptionMessage('Received unexpected data from server: 333 unexpectedServerResponse.');
-
-		new AsyncSmtpConnectionWriter($this->createConnectionMock(), $this->logger);
-		$this->runFailedTest('333 unexpectedServerResponse');
-	}
-
 	public function testUnexpectedConnectionEndFromServer(): void
 	{
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock(), $this->logger);
