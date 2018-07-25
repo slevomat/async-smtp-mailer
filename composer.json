@@ -1,6 +1,6 @@
 {
 	"name": "slevomat/async-smtp-mailer",
-	"description": "Asynchronous SMPT mailer",
+	"description": "Asynchronous SMTP mailer",
 	"homepage": "http://github.com/slevomat/async-smtp-mailer",
 	"license": ["proprietary"],
 	"authors": [
