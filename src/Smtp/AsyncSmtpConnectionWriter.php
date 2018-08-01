@@ -142,7 +142,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 			if (in_array(trim($data), $tooManyMessagesData, true)) {
 				$exception = new \AsyncConnection\Smtp\TooManyMessagesException($errorMessage);
 			} else {
-				$exception = new \AsyncConnection\Smtp\AsyncSmtpConnectionException($errorMessage);
+				$exception = new \AsyncConnection\Smtp\UnexpectedResponseCodeException($code, $expectedCodes, $errorMessage, $data);
 			}
 
 			$deferred->reject($exception);

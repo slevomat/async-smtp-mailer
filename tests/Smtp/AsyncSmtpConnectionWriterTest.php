@@ -200,20 +200,20 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				new AsyncDoubleResponseMessage('EHLO slevomat.local', [SmtpCode::SERVICE_READY], [SmtpCode::OK]),
 				'421 Service not available',
 				null,
-				'SMTP server did not accept message EHLO slevomat.local. Expected code: 220. Actual code: 421.',
+				'SMTP server did not accept message EHLO slevomat.local. Expected code: 220. Actual code: 421.: 421 Service not available',
 			],
 			//invalid second response
 			[
 				new AsyncDoubleResponseMessage('EHLO slevomat.local', [SmtpCode::SERVICE_READY], [SmtpCode::OK]),
 				'220 mailtrap.io ESMTP ready',
 				'421 Service not available',
-				'SMTP server did not accept message EHLO slevomat.local. Expected code: 250. Actual code: 421.',
+				'SMTP server did not accept message EHLO slevomat.local. Expected code: 250. Actual code: 421.: 421 Service not available',
 			],
 			[
 				new AsyncSingleResponseMessage('AUTH LOGIN', [SmtpCode::AUTH_CONTINUE]),
 				'421 Service not available',
 				null,
-				'SMTP server did not accept message AUTH LOGIN. Expected code: 334. Actual code: 421.',
+				'SMTP server did not accept message AUTH LOGIN. Expected code: 334. Actual code: 421.: 421 Service not available',
 			],
 			[
 				new AsyncSingleResponseMessage('AUTH LOGIN', [SmtpCode::AUTH_CONTINUE]),
@@ -226,7 +226,7 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				new AsyncSingleResponseMessage('base64EncodedUsername', [SmtpCode::AUTH_CONTINUE], 'credentials'),
 				'421 Service not available',
 				null,
-				'SMTP server did not accept credentials. Expected code: 334. Actual code: 421.',
+				'SMTP server did not accept credentials. Expected code: 334. Actual code: 421.: 421 Service not available',
 			],
 		];
 	}
