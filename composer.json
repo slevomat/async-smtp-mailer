@@ -12,7 +12,7 @@
 	],
 	"require": {
 		"php-64bit": "~7.2",
-		"consistence/consistence": "^1.0.2",
+		"consistence/consistence": "^2.0.0",
 		"nette/di": "^2.4.11",
 		"nette/mail": "^2.4.4",
 		"psr/log": "^1.0.2",
