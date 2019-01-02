@@ -135,7 +135,8 @@ class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCas
 							$inboxSettings->getPassword()
 						);
 						if ($imap === false) {
-							throw new \Exception(imap_last_error());
+							$error = imap_last_error();
+							throw new \Exception($error !== false ? $error : 'IMAP error occured.');
 						}
 						$searchQuery = sprintf('SUBJECT "%s" SINCE "%s" FROM "%s"', $time, date('Y-m-d', $time), $settings->getEmailFrom());
 						$emails = imap_search($imap, $searchQuery, SE_UID);

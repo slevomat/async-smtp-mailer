@@ -131,7 +131,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 			$this->logger->debug('code WRONG');
 			$errorMessage = sprintf(
 				'SMTP server did not accept %s. Expected code: %s. Actual code: %s.',
-				$messageToReplace ? $messageToReplace : sprintf('message %s', $message),
+				$messageToReplace !== null ? $messageToReplace : sprintf('message %s', $message),
 				implode('|', $expectedCodes),
 				$code
 			);
