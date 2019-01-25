@@ -13,8 +13,8 @@
 	"require": {
 		"php-64bit": "~7.2",
 		"consistence/consistence": "^2.0.0",
-		"nette/di": "^2.4.11",
-		"nette/mail": "^2.4.4",
+		"nette/di": "^3.0",
+		"nette/mail": "^3.0",
 		"psr/log": "^1.0.2",
 		"react/event-loop": "^1.0.0",
 		"react/promise": "^2.7.0",
@@ -29,7 +29,7 @@
 		"phpstan/phpstan-strict-rules": "^0.10",
 		"phpunit/phpunit": "^7.0.2",
 		"slevomat/coding-standard": "^4.5.2",
-		"spell-checker/spell-checker": "v0.3.6",
+		"spell-checker/spell-checker": "v0.3.11",
 		"spell-checker/dictionary-en": "v0.1.1"
 	},
 	"config": {
@@ -40,5 +40,6 @@
 	},
 	"autoload-dev": {
 		"classmap": ["tests"]
-	}
+	},
+	"prefer-stable": true
 }
