@@ -18,7 +18,7 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 	/** @var string[] */
 	private $recipients = [];
 
-	public function setUp(): void
+	protected function setUp(): void
 	{
 		/** @var \AsyncConnection\Smtp\AsyncSmtpConnectionWriter|\PHPUnit_Framework_MockObject_MockObject $writerMock */
 		$writerMock = $this->createMock(AsyncSmtpConnectionWriter::class);

@@ -33,7 +33,7 @@ class AsyncMessageQueueManagerTest extends \AsyncConnection\TestCase
 	/** @var \Psr\Log\LoggerInterface */
 	private $logger;
 
-	public function setUp(): void
+	protected function setUp(): void
 	{
 		$this->logger = $this->getLogger();
 		$this->connectionManagerMock = $this->createMock(AsyncConnectionManager::class);
