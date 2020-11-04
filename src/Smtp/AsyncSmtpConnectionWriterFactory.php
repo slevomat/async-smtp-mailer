@@ -2,19 +2,22 @@
 
 namespace AsyncConnection\Smtp;
 
-class AsyncSmtpConnectionWriterFactory extends \Consistence\ObjectPrototype
+use Consistence\ObjectPrototype;
+use Psr\Log\LoggerInterface;
+use React\Socket\ConnectionInterface;
+
+class AsyncSmtpConnectionWriterFactory extends ObjectPrototype
 {
 
-	/** @var \Psr\Log\LoggerInterface */
-	private $logger;
+	private LoggerInterface $logger;
 
-	public function __construct(\Psr\Log\LoggerInterface $logger)
+	public function __construct(LoggerInterface $logger)
 	{
 		$this->logger = $logger;
 	}
 
 	public function create(
-		\React\Socket\ConnectionInterface $connection
+		ConnectionInterface $connection
 	): AsyncSmtpConnectionWriter
 	{
 		return new AsyncSmtpConnectionWriter($connection, $this->logger);

@@ -2,7 +2,10 @@
 
 namespace AsyncConnection\Smtp;
 
-class MailMessage extends \Nette\Mail\Message implements \AsyncConnection\AsyncMessage
+use AsyncConnection\AsyncMessage;
+use Nette\Mail\Message;
+
+class MailMessage extends Message implements AsyncMessage
 {
 
 	public function getText(): string

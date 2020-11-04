@@ -2,11 +2,13 @@
 
 namespace AsyncConnection;
 
+use React\Promise\PromiseInterface;
+
 interface AsyncConnector
 {
 
-	public function connect(): \React\Promise\PromiseInterface;
+	public function connect(): PromiseInterface;
 
-	public function disconnect(AsyncConnectionWriter $writer): \React\Promise\PromiseInterface;
+	public function disconnect(AsyncConnectionWriter $writer): PromiseInterface;
 
 }

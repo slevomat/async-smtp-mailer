@@ -4,28 +4,37 @@
 
 namespace AsyncConnection\Smtp;
 
+use AsyncConnection\AsyncConnectionException;
 use AsyncConnection\AsyncConnectionManager;
+use AsyncConnection\AsyncTestTrait;
 use AsyncConnection\Connector\ConnectorFactory;
+use AsyncConnection\IntegrationTestCase;
+use Closure;
+use Psr\Log\LoggerInterface;
+use React\EventLoop\Factory;
+use React\EventLoop\LoopInterface;
+use RuntimeException;
+use Throwable;
+use function sprintf;
 
-class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTestCase
+class AsyncSmtpConnectionIntegrationTest extends IntegrationTestCase
 {
 
-	use \AsyncConnection\AsyncTestTrait;
+	use AsyncTestTrait;
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
+	private LoopInterface $loop;
 
-	/** @var \Psr\Log\LoggerInterface */
-	private $logger;
+	private LoggerInterface $logger;
 
 	protected function setUp(): void
 	{
 		$settings = $this->getSettings();
 		if ($settings->shouldSkipIntegrationTests()) {
 			$this->markTestSkipped();
+
 			return;
 		}
-		$this->loop = \React\EventLoop\Factory::create();
+		$this->loop = Factory::create();
 		$this->logger = $this->getLogger();
 		$this->ignoreTimeoutErrors($settings->shouldIgnoreTimeoutErrors());
 	}
@@ -42,8 +51,8 @@ class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTes
 		$settings = $this->getSettings()->getSmtpSettings();
 		$settings->updatePassword('blabla');
 
-		$assertOnFail = function (\Throwable $exception): void {
-			$this->assertInstanceOf(\AsyncConnection\AsyncConnectionException::class, $exception);
+		$assertOnFail = function (Throwable $exception): void {
+			$this->assertInstanceOf(AsyncConnectionException::class, $exception);
 			$this->assertStringStartsWith('SMTP server did not accept credentials.', $exception->getMessage());
 		};
 
@@ -55,8 +64,8 @@ class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTes
 		$settings = $this->getSettings()->getSmtpSettings();
 		$settings->updateUsername('blabla');
 
-		$assertOnFail = function (\Throwable $exception): void {
-			$this->assertInstanceOf(\AsyncConnection\AsyncConnectionException::class, $exception);
+		$assertOnFail = function (Throwable $exception): void {
+			$this->assertInstanceOf(AsyncConnectionException::class, $exception);
 			$this->assertStringStartsWith('SMTP server did not accept credentials.', $exception->getMessage());
 		};
 
@@ -68,15 +77,15 @@ class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTes
 		$settings = $this->getSettings()->getSmtpSettings();
 		$settings->updateHost('nonexistent.domain');
 
-		$assertOnFail = function (\Throwable $exception) use ($settings): void {
-			$this->assertInstanceOf(\RuntimeException::class, $exception);
+		$assertOnFail = function (Throwable $exception) use ($settings): void {
+			$this->assertInstanceOf(RuntimeException::class, $exception);
 			$this->assertStringStartsWith(
 				sprintf(
 					'Connection to %s:%s failed: php_network_getaddresses: getaddrinfo failed',
 					$settings->getHost(),
-					$settings->getPort()
+					$settings->getPort(),
 				),
-				$exception->getMessage()
+				$exception->getMessage(),
 			);
 		};
 
@@ -94,14 +103,14 @@ class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTes
 					function (): void {
 						$this->setException(false);
 					},
-					function (\Throwable $e): void {
+					function (Throwable $e): void {
 						$this->setException($e);
-					}
+					},
 				);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -114,9 +123,9 @@ class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTes
 			function (): void {
 				$this->setException(false);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -125,7 +134,7 @@ class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTes
 	private function failedConnectionTest(
 		SmtpSettings $settings,
 		string $errorMessage,
-		\Closure $assertOnFail
+		Closure $assertOnFail
 	): void
 	{
 		$connection = $this->createConnectionManager($settings);
@@ -133,9 +142,9 @@ class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTes
 			function (): void {
 				$this->setException(false);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runFailedTest($this->loop, $assertOnFail, $errorMessage);
@@ -147,7 +156,7 @@ class AsyncSmtpConnectionIntegrationTest extends \AsyncConnection\IntegrationTes
 			new AsyncSmtpConnectionWriterFactory($this->logger),
 			new ConnectorFactory($this->loop, false),
 			$this->logger,
-			$settings
+			$settings,
 		);
 
 		return $factory->create();

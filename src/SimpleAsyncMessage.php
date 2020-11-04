@@ -2,11 +2,12 @@
 
 namespace AsyncConnection;
 
-class SimpleAsyncMessage extends \Consistence\ObjectPrototype implements AsyncMessage
+use Consistence\ObjectPrototype;
+
+class SimpleAsyncMessage extends ObjectPrototype implements AsyncMessage
 {
 
-	/** @var string */
-	private $text;
+	private string $text;
 
 	public function __construct(string $text)
 	{

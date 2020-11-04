@@ -2,24 +2,29 @@
 
 namespace AsyncConnection;
 
+use Closure;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use React\EventLoop\LoopInterface;
+use Throwable;
+use function sprintf;
+use function time;
+
 trait AsyncTestTrait
 {
 
-	/** @var \Throwable|null|false */
+	/** @var Throwable|false|null */
 	private $exception = null;
 
-	/** @var bool */
-	private $ignoreTimeoutErrors = false;
+	private bool $ignoreTimeoutErrors = false;
 
-	/** @var int|null */
-	private $customMaxLoopExecutionTime;
+	private ?int $customMaxLoopExecutionTime = null;
 
-	/** @var int|null */
-	private $customTimerInterval;
+	private ?int $customTimerInterval = null;
 
 	public function runSuccessfulTest(
-		\React\EventLoop\LoopInterface $loop,
-		?\Closure $assertOnSuccess = null
+		LoopInterface $loop,
+		?Closure $assertOnSuccess = null
 	): void
 	{
 		$startTime = time();
@@ -31,15 +36,17 @@ trait AsyncTestTrait
 			}
 
 			$loop->stop();
-			if ($this->exception instanceof \Throwable) {
-				if ($this->exception instanceof \AsyncConnection\AsyncConnectionTimeoutException
+			if ($this->exception instanceof Throwable) {
+				if ($this->exception instanceof AsyncConnectionTimeoutException
 					&& $this->ignoreTimeoutErrors
 				) {
 					return;
 				}
-				throw $this->exception;
 
-			} elseif ($assertOnSuccess !== null) {
+				throw $this->exception;
+			}
+
+			if ($assertOnSuccess !== null) {
 				$assertOnSuccess();
 
 			} else {
@@ -50,8 +57,8 @@ trait AsyncTestTrait
 	}
 
 	public function runFailedTest(
-		\React\EventLoop\LoopInterface $loop,
-		?\Closure $assertOnFail = null,
+		LoopInterface $loop,
+		?Closure $assertOnFail = null,
 		?string $errorMessage = null
 	): void
 	{
@@ -67,11 +74,10 @@ trait AsyncTestTrait
 			if ($this->exception === false) {
 				$this->fail($errorMessage ?? 'No exception was thrown');
 
-			} elseif ($this->exception instanceof \AsyncConnection\AsyncConnectionTimeoutException
+			} elseif ($this->exception instanceof AsyncConnectionTimeoutException
 				&& $this->ignoreTimeoutErrors
 			) {
 				return;
-
 			} elseif ($assertOnFail !== null) {
 				$assertOnFail($this->exception);
 
@@ -83,7 +89,7 @@ trait AsyncTestTrait
 	}
 
 	/**
-	 * @param \Throwable|null|false $exception
+	 * @param Throwable|false|null $exception
 	 */
 	public function setException($exception): void
 	{
@@ -105,13 +111,13 @@ trait AsyncTestTrait
 		return $this->customMaxLoopExecutionTime ?? 15;
 	}
 
-	public function getLogger(): \Psr\Log\LoggerInterface
+	public function getLogger(): LoggerInterface
 	{
-		return new \Psr\Log\NullLogger();
+		return new NullLogger();
 	}
 
 	private function checkLoopExecutionTime(
-		\React\EventLoop\LoopInterface $loop,
+		LoopInterface $loop,
 		int $startTime
 	): void
 	{

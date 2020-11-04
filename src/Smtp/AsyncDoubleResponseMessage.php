@@ -2,26 +2,28 @@
 
 namespace AsyncConnection\Smtp;
 
-class AsyncDoubleResponseMessage extends \Consistence\ObjectPrototype implements \AsyncConnection\AsyncMessage
+use AsyncConnection\AsyncMessage;
+use Consistence\ObjectPrototype;
+use Consistence\Type\Type;
+
+class AsyncDoubleResponseMessage extends ObjectPrototype implements AsyncMessage
 {
 
-	/** @var string */
-	private $text;
+	private string $text;
 
 	/** @var int[] */
-	private $expectedFirstResponseCodes = [];
+	private array $expectedFirstResponseCodes = [];
 
 	/** @var int[] */
-	private $expectedSecondResponseCodes = [];
+	private array $expectedSecondResponseCodes = [];
 
-	/** @var string|null */
-	private $textReplacement;
+	private ?string $textReplacement = null;
 
 	/**
 	 * @param string $text
 	 * @param int[] $expectedFirstResponseCodes
 	 * @param int[] $expectedSecondResponseCodes
-	 * @param null|string $textReplacement
+	 * @param string|null $textReplacement
 	 */
 	public function __construct(
 		string $text,
@@ -30,8 +32,8 @@ class AsyncDoubleResponseMessage extends \Consistence\ObjectPrototype implements
 		?string $textReplacement = null
 	)
 	{
-		\Consistence\Type\Type::checkType($expectedFirstResponseCodes, 'int[]');
-		\Consistence\Type\Type::checkType($expectedSecondResponseCodes, 'int[]');
+		Type::checkType($expectedFirstResponseCodes, 'int[]');
+		Type::checkType($expectedSecondResponseCodes, 'int[]');
 		$this->text = $text;
 		$this->expectedFirstResponseCodes = $expectedFirstResponseCodes;
 		$this->expectedSecondResponseCodes = $expectedSecondResponseCodes;

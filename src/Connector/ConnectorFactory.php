@@ -2,31 +2,34 @@
 
 namespace AsyncConnection\Connector;
 
-class ConnectorFactory extends \Consistence\ObjectPrototype
+use Consistence\ObjectPrototype;
+use React\EventLoop\LoopInterface;
+use React\Socket\ConnectorInterface;
+use React\Socket\SecureConnector;
+use React\Socket\TimeoutConnector;
+
+class ConnectorFactory extends ObjectPrototype
 {
 
 	private const DEFAULT_TIMEOUT_IN_SECONDS = 3;
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
+	private LoopInterface $loop;
 
-	/** @var bool */
-	private $useSecureConnector;
+	private bool $useSecureConnector;
 
 	/** @var mixed[][] */
-	private $context;
+	private array $context;
 
-	/** @var int */
-	private $timeoutInSeconds;
+	private int $timeoutInSeconds;
 
 	/**
-	 * @param \React\EventLoop\LoopInterface $loop
+	 * @param LoopInterface $loop
 	 * @param bool $useSecureConnector
 	 * @param mixed[][] $context
 	 * @param int|null $timeoutInSeconds
 	 */
 	public function __construct(
-		\React\EventLoop\LoopInterface $loop,
+		LoopInterface $loop,
 		bool $useSecureConnector = false,
 		array $context = [],
 		?int $timeoutInSeconds = null
@@ -38,16 +41,16 @@ class ConnectorFactory extends \Consistence\ObjectPrototype
 		$this->timeoutInSeconds = $timeoutInSeconds ?? self::DEFAULT_TIMEOUT_IN_SECONDS;
 	}
 
-	public function create(): \React\Socket\ConnectorInterface
+	public function create(): ConnectorInterface
 	{
 		$connector = new TcpConnector($this->loop, $this->context);
 
 		if ($this->useSecureConnector) {
-			$connector = new \React\Socket\SecureConnector($connector, $this->loop, $this->context);
+			$connector = new SecureConnector($connector, $this->loop, $this->context);
 		}
 
 		if ($this->timeoutInSeconds > 0) {
-			$connector = new \React\Socket\TimeoutConnector($connector, $this->timeoutInSeconds, $this->loop);
+			$connector = new TimeoutConnector($connector, $this->timeoutInSeconds, $this->loop);
 		}
 
 		return $connector;

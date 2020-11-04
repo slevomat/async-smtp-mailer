@@ -2,22 +2,24 @@
 
 namespace AsyncConnection\Smtp;
 
-class AsyncSingleResponseMessage extends \Consistence\ObjectPrototype implements \AsyncConnection\AsyncMessage
+use AsyncConnection\AsyncMessage;
+use Consistence\ObjectPrototype;
+use Consistence\Type\Type;
+
+class AsyncSingleResponseMessage extends ObjectPrototype implements AsyncMessage
 {
 
-	/** @var string */
-	private $text;
+	private string $text;
 
 	/** @var int[] */
-	private $expectedResponseCodes = [];
+	private array $expectedResponseCodes = [];
 
-	/** @var string|null */
-	private $textReplacement;
+	private ?string $textReplacement = null;
 
 	/**
 	 * @param string $text
 	 * @param int[] $expectedResponseCodes
-	 * @param null|string $textReplacement
+	 * @param string|null $textReplacement
 	 */
 	public function __construct(
 		string $text,
@@ -25,7 +27,7 @@ class AsyncSingleResponseMessage extends \Consistence\ObjectPrototype implements
 		?string $textReplacement = null
 	)
 	{
-		\Consistence\Type\Type::checkType($expectedResponseCodes, 'int[]');
+		Type::checkType($expectedResponseCodes, 'int[]');
 		$this->text = $text;
 		$this->expectedResponseCodes = $expectedResponseCodes;
 		$this->textReplacement = $textReplacement;

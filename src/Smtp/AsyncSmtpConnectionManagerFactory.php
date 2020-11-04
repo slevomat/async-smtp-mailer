@@ -4,26 +4,24 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncConnectionManager;
 use AsyncConnection\Connector\ConnectorFactory;
+use Consistence\ObjectPrototype;
+use Psr\Log\LoggerInterface;
 
-class AsyncSmtpConnectionManagerFactory extends \Consistence\ObjectPrototype
+class AsyncSmtpConnectionManagerFactory extends ObjectPrototype
 {
 
-	/** @var \AsyncConnection\Smtp\AsyncSmtpConnectionWriterFactory */
-	private $writerFactory;
+	private AsyncSmtpConnectionWriterFactory $writerFactory;
 
-	/** @var \AsyncConnection\Connector\ConnectorFactory */
-	private $connectorFactory;
+	private ConnectorFactory $connectorFactory;
 
-	/** @var \Psr\Log\LoggerInterface */
-	private $logger;
+	private LoggerInterface $logger;
 
-	/** @var \AsyncConnection\Smtp\SmtpSettings */
-	private $smtpSettings;
+	private SmtpSettings $smtpSettings;
 
 	public function __construct(
 		AsyncSmtpConnectionWriterFactory $writerFactory,
 		ConnectorFactory $connectorFactory,
-		\Psr\Log\LoggerInterface $logger,
+		LoggerInterface $logger,
 		SmtpSettings $smtpSettings
 	)
 	{
@@ -38,7 +36,7 @@ class AsyncSmtpConnectionManagerFactory extends \Consistence\ObjectPrototype
 		$connection = new AsyncSmtpConnector(
 			$this->writerFactory,
 			$this->connectorFactory->create(),
-			$this->smtpSettings
+			$this->smtpSettings,
 		);
 
 		return new AsyncConnectionManager($connection, $this->logger);

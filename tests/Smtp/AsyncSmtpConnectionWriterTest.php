@@ -5,43 +5,49 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
+use AsyncConnection\AsyncTestTrait;
+use AsyncConnection\TestCase;
+use Closure;
+use Exception;
+use Nette\Mail\Message;
+use Psr\Log\LoggerInterface;
+use React\EventLoop\Factory;
+use React\EventLoop\LoopInterface;
+use React\Socket\ConnectionInterface;
+use Throwable;
+use function count;
+use function time;
 
-class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
+class AsyncSmtpConnectionWriterTest extends TestCase
 {
 
-	use \AsyncConnection\AsyncTestTrait;
+	use AsyncTestTrait;
 
 	private const MAX_LOOP_EXECUTION_TIME = 10;
 
 	private const DEFAULT_INTERVAL_IN_SECONDS = 1;
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
+	private LoopInterface $loop;
 
-	/** @var \Throwable|false|null **/
+	/** @var Throwable|false|null **/
 	private $exception;
 
-	/** @var \Closure|null */
-	private $doOnData;
+	private ?Closure $doOnData = null;
 
-	/** @var \Closure|null */
-	private $doOnEnd;
+	private ?Closure $doOnEnd = null;
 
-	/** @var \Closure|null */
-	private $doOnClose;
+	private ?Closure $doOnClose = null;
 
-	/** @var \Closure|null */
-	private $doOnError;
+	private ?Closure $doOnError = null;
 
 	/** @var string[] */
-	private $serverResponses;
+	private array $serverResponses;
 
-	/** @var \Psr\Log\LoggerInterface */
-	private $logger;
+	private LoggerInterface $logger;
 
 	protected function setUp(): void
 	{
-		$this->loop = \React\EventLoop\Factory::create();
+		$this->loop = Factory::create();
 		$this->exception = $this->doOnData = $this->doOnEnd = $this->doOnClose = $this->doOnError = null;
 		$this->serverResponses = [];
 		$this->logger = $this->getLogger();
@@ -49,9 +55,9 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 
 	public function testInvalidStreamThrowsException(): void
 	{
-		$this->expectException(\AsyncConnection\Smtp\InvalidSmtpConnectionException::class);
+		$this->expectException(InvalidSmtpConnectionException::class);
 
-		$connectionMock = $this->createMock(\React\Socket\ConnectionInterface::class);
+		$connectionMock = $this->createMock(ConnectionInterface::class);
 		$connectionMock->method('isReadable')->willReturn(false);
 		$connectionMock->method('isWritable')->willReturn(false);
 
@@ -66,9 +72,9 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				function (): void {
 					$this->exception = false;
 				},
-				function (\Throwable $exception): void {
+				function (Throwable $exception): void {
 					$this->exception = $exception;
-				}
+				},
 			);
 
 		($this->doOnEnd)();
@@ -83,9 +89,9 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				function (): void {
 					$this->exception = false;
 				},
-				function (\Throwable $exception): void {
+				function (Throwable $exception): void {
 					$this->exception = $exception;
-				}
+				},
 			);
 
 		($this->doOnClose)();
@@ -100,17 +106,17 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				function (): void {
 					$this->exception = false;
 				},
-				function (\Throwable $exception): void {
+				function (Throwable $exception): void {
 					$this->exception = $exception;
-				}
+				},
 			);
 
-		($this->doOnError)(new \Exception('Something horrible happened!'));
+		($this->doOnError)(new Exception('Something horrible happened!'));
 		$this->runFailedTest(
 			null,
 			null,
 			'SMTP server connection error.',
-			'Something horrible happened!'
+			'Something horrible happened!',
 		);
 	}
 
@@ -163,6 +169,7 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 
 	/**
 	 * @dataProvider dataSuccessfulWrites
+	 *
 	 * @param AsyncMessage $message
 	 * @param string|null $actualFirstResponse
 	 * @param string|null $actualSecondResponse
@@ -178,14 +185,14 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 			function (): void {
 				$this->exception = false;
 			},
-			function (\Throwable $exception): void {
+			function (Throwable $exception): void {
 				$this->exception = $exception;
-			}
+			},
 		);
 
 		$this->runSuccessfulTest(
 			$actualFirstResponse,
-			$actualSecondResponse
+			$actualSecondResponse,
 		);
 	}
 
@@ -233,6 +240,7 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 
 	/**
 	 * @dataProvider dataFailedWrites
+	 *
 	 * @param AsyncMessage $message
 	 * @param string|null $actualFirstResponse
 	 * @param string|null $actualSecondResponse
@@ -251,27 +259,27 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 				function (): void {
 					$this->exception = false;
 				},
-				function (\Throwable $exception): void {
+				function (Throwable $exception): void {
 					$this->exception = $exception;
-				}
+				},
 			);
 
 		$this->runFailedTest(
 			$actualFirstResponse,
 			$actualSecondResponse,
-			$expectedExceptionMessage
+			$expectedExceptionMessage,
 		);
 	}
 
-	private function createConnectionMock(?string $message = null): \React\Socket\ConnectionInterface
+	private function createConnectionMock(?string $message = null): ConnectionInterface
 	{
-		$connectionMock = $this->createMock(\React\Socket\ConnectionInterface::class);
+		$connectionMock = $this->createMock(ConnectionInterface::class);
 		$connectionMock->method('isReadable')->willReturn(true);
 		$connectionMock->method('isWritable')->willReturn(true);
 		if ($message !== null) {
 			$connectionMock->expects($this->once())
 				->method('write')
-				->with($message . \Nette\Mail\Message::EOL);
+				->with($message . Message::EOL);
 		}
 		$connectionMock->method('on')
 			->willReturnCallback(function ($type, $closure): void {
@@ -300,7 +308,8 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 		$this->loop->addPeriodicTimer(self::DEFAULT_INTERVAL_IN_SECONDS, function () use ($startTime, $firstResponse, $secondResponse): void {
 			if (time() - $startTime > self::MAX_LOOP_EXECUTION_TIME) {
 				$this->loop->stop();
-				throw new \Exception('Max loop running execution time exceeded.');
+
+				throw new Exception('Max loop running execution time exceeded.');
 			}
 			if (count($this->serverResponses) === 0) {
 				$this->serverResponses[] = $firstResponse;
@@ -315,12 +324,11 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 			}
 
 			$this->loop->stop();
-			if ($this->exception instanceof \Throwable) {
+			if ($this->exception instanceof Throwable) {
 				throw $this->exception;
-
-			} else {
-				$this->assertTrue(true);
 			}
+
+			$this->assertTrue(true);
 		});
 
 		$this->loop->run();
@@ -338,7 +346,8 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
  use ($startTime, $firstResponse, $secondResponse, $expectedErrorMessage, $expectedPreviousErrorMessage): void {
 			if (time() - $startTime > self::MAX_LOOP_EXECUTION_TIME) {
 				$this->loop->stop();
-				throw new \Exception('Max loop running execution time exceeded.');
+
+				throw new Exception('Max loop running execution time exceeded.');
 			}
 			if (count($this->serverResponses) === 0 && $firstResponse !== null) {
 				$this->serverResponses[] = $firstResponse;
@@ -353,8 +362,8 @@ class AsyncSmtpConnectionWriterTest extends \AsyncConnection\TestCase
 			}
 
 			$this->loop->stop();
-			if (!($this->exception instanceof \Throwable)) {
-				throw new \Exception('Exception was not thrown.');
+			if (!($this->exception instanceof Throwable)) {
+				throw new Exception('Exception was not thrown.');
 			}
 
 			if ($expectedErrorMessage !== null) {

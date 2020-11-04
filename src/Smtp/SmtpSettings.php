@@ -2,23 +2,20 @@
 
 namespace AsyncConnection\Smtp;
 
-class SmtpSettings extends \Consistence\ObjectPrototype
+use Consistence\ObjectPrototype;
+
+class SmtpSettings extends ObjectPrototype
 {
 
-	/** @var string */
-	private $host;
+	private string $host;
 
-	/** @var int */
-	private $port;
+	private int $port;
 
-	/** @var string */
-	private $hello;
+	private string $hello;
 
-	/** @var string|null */
-	private $username;
+	private ?string $username = null;
 
-	/** @var string|null */
-	private $password;
+	private ?string $password = null;
 
 	public function __construct(
 		string $host,

@@ -3,27 +3,22 @@
 namespace AsyncConnection;
 
 use AsyncConnection\Smtp\SmtpSettings;
+use Consistence\ObjectPrototype;
 
-class IntegrationTestSettings extends \Consistence\ObjectPrototype
+class IntegrationTestSettings extends ObjectPrototype
 {
 
-	/** @var bool */
-	private $skipIntegrationTests;
+	private bool $skipIntegrationTests;
 
-	/** @var bool */
-	private $ignoreTimeoutErrors;
+	private bool $ignoreTimeoutErrors;
 
-	/** @var string */
-	private $emailFrom;
+	private string $emailFrom;
 
-	/** @var string */
-	private $recipientsEmail;
+	private string $recipientsEmail;
 
-	/** @var \AsyncConnection\Smtp\SmtpSettings */
-	private $smtpSettings;
+	private SmtpSettings $smtpSettings;
 
-	/** @var \AsyncConnection\TestInboxSettings|null */
-	private $testInboxSettings;
+	private ?TestInboxSettings $testInboxSettings = null;
 
 	public function __construct(
 		bool $skipIntegrationTests,

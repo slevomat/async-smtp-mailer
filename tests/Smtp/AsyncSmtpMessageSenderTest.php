@@ -3,34 +3,44 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
+use AsyncConnection\AsyncTestTrait;
+use AsyncConnection\TestCase;
+use Closure;
+use Nette\Utils\Strings;
+use PHPUnit_Framework_MockObject_MockObject;
+use React\EventLoop\Factory;
+use React\EventLoop\LoopInterface;
+use React\Promise\ExtendedPromiseInterface;
+use Throwable;
+use function React\Promise\reject;
+use function React\Promise\resolve;
 
-class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
+class AsyncSmtpMessageSenderTest extends TestCase
 {
 
-	use \AsyncConnection\AsyncTestTrait;
+	use AsyncTestTrait;
 
-	/** @var \AsyncConnection\Smtp\AsyncSmtpConnectionWriter|\PHPUnit_Framework_MockObject_MockObject */
+	/** @var AsyncSmtpConnectionWriter|PHPUnit_Framework_MockObject_MockObject */
 	private $writerMock;
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
+	private LoopInterface $loop;
 
 	/** @var string[] */
-	private $recipients = [];
+	private array $recipients = [];
 
 	protected function setUp(): void
 	{
-		/** @var \AsyncConnection\Smtp\AsyncSmtpConnectionWriter|\PHPUnit_Framework_MockObject_MockObject $writerMock */
+		/** @var AsyncSmtpConnectionWriter|PHPUnit_Framework_MockObject_MockObject $writerMock */
 		$writerMock = $this->createMock(AsyncSmtpConnectionWriter::class);
 		$writerMock->method('isValid')->willReturn(true);
 		$this->writerMock = $writerMock;
-		$this->loop = \React\EventLoop\Factory::create();
+		$this->loop = Factory::create();
 	}
 
 	public function testSuccessfulSendingReturnsPromise(): void
 	{
 		$this->writerMock->method('write')
-			->willReturn(\React\Promise\resolve());
+			->willReturn(resolve());
 
 		$this->runSuccessfulSendingTest($this->createMessage());
 	}
@@ -51,39 +61,38 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 
 	/**
 	 * @dataProvider dataFailedSendingThrowsException
+	 *
 	 * @param string $messageToFail
 	 */
 	public function testFailedSendingThrowsException(string $messageToFail): void
 	{
 		$this->writerMock->method('write')
-			->willReturnCallback(function (AsyncMessage $message) use ($messageToFail) {
-				return \Nette\Utils\Strings::startsWith($message->getText(), $messageToFail)
-					? \React\Promise\reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException('Sending failed'))
-					: \React\Promise\resolve();
-			});
+			->willReturnCallback(static fn (AsyncMessage $message) => Strings::startsWith($message->getText(), $messageToFail)
+					? reject(new AsyncSmtpConnectionException('Sending failed'))
+					: resolve());
 
-		$assertOnFail = function (\Throwable $exception): void {
-			$this->assertInstanceOf(\AsyncConnection\Smtp\AsyncSmtpConnectionException::class, $exception);
+		$assertOnFail = function (Throwable $exception): void {
+			$this->assertInstanceOf(AsyncSmtpConnectionException::class, $exception);
 			$this->assertSame('Sending failed', $exception->getMessage());
 		};
 
 		$this->runFailedSendingTest(
 			$this->createMessage(),
 			'Failed sending returned resolved promise.',
-			$assertOnFail
+			$assertOnFail,
 		);
 	}
 
 	public function testMultipleRecipients(): void
 	{
 		$this->writerMock->method('write')
-			->will($this->returnCallback(function (AsyncMessage $message): \React\Promise\ExtendedPromiseInterface {
-				$matches = \Nette\Utils\Strings::match($message->getText(), '~RCPT TO:\s?\<(?<recipient>[^>]+)\>~i');
+			->will($this->returnCallback(function (AsyncMessage $message): ExtendedPromiseInterface {
+				$matches = Strings::match($message->getText(), '~RCPT TO:\s?\<(?<recipient>[^>]+)\>~i');
 				if ($matches !== null) {
 					$this->recipients[] = $matches['recipient'];
 				}
 
-				return \React\Promise\resolve();
+				return resolve();
 			}));
 
 		$assertOnSuccess = function (): void {
@@ -102,7 +111,7 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 
 	private function runSuccessfulSendingTest(
 		MailMessage $message,
-		?\Closure $assertOnSuccess = null
+		?Closure $assertOnSuccess = null
 	): void
 	{
 		$sender = new AsyncSmtpMessageSender();
@@ -111,9 +120,9 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 				function (): void {
 					$this->setException(false);
 				},
-				function (\Throwable $exception): void {
+				function (Throwable $exception): void {
 					$this->setException($exception);
-				}
+				},
 			);
 
 		$this->runSuccessfulTest($this->loop, $assertOnSuccess);
@@ -122,7 +131,7 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 	private function runFailedSendingTest(
 		MailMessage $message,
 		string $errorMessage,
-		\Closure $assertOnFail
+		Closure $assertOnFail
 	): void
 	{
 		$sender = new AsyncSmtpMessageSender();
@@ -131,9 +140,9 @@ class AsyncSmtpMessageSenderTest extends \AsyncConnection\TestCase
 				function (): void {
 					$this->setException(false);
 				},
-				function (\Throwable $exception): void {
+				function (Throwable $exception): void {
 					$this->setException($exception);
-				}
+				},
 			);
 
 		$this->runFailedTest($this->loop, $assertOnFail, $errorMessage);

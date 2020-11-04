@@ -2,14 +2,14 @@
 
 namespace AsyncConnection;
 
-class AsyncConnectionResult extends \Consistence\ObjectPrototype
+use Consistence\ObjectPrototype;
+
+class AsyncConnectionResult extends ObjectPrototype
 {
 
-	/** @var \AsyncConnection\AsyncConnectionWriter */
-	private $asyncConnectionWriter;
+	private AsyncConnectionWriter $asyncConnectionWriter;
 
-	/** @var bool */
-	private $connectionRequest; // false = already existing connection returned
+	private bool $connectionRequest; // false = already existing connection returned
 
 	public function __construct(AsyncConnectionWriter $asyncConnectionWriter, bool $connectionRequest)
 	{

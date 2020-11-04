@@ -2,42 +2,62 @@
 
 namespace AsyncConnection\Smtp;
 
+use AsyncConnection\AsyncConnectionTimeoutException;
 use AsyncConnection\AsyncMessageQueueManager;
+use AsyncConnection\AsyncTestTrait;
 use AsyncConnection\Connector\ConnectorFactory;
+use AsyncConnection\IntegrationTestCase;
 use AsyncConnection\Timer\PromiseTimer;
+use Exception;
+use Psr\Log\LoggerInterface;
+use React\EventLoop\Factory;
+use React\EventLoop\LoopInterface;
+use React\EventLoop\Timer\Timer;
+use Throwable;
+use function array_filter;
+use function count;
+use function date;
+use function imap_close;
+use function imap_fetch_overview;
+use function imap_last_error;
+use function imap_open;
+use function imap_search;
+use function sprintf;
+use function time;
+use const FT_UID;
+use const SE_UID;
 
-class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCase
+class AsyncSmtpMailerIntegrationTest extends IntegrationTestCase
 {
 
-	use \AsyncConnection\AsyncTestTrait;
+	use AsyncTestTrait;
 
 	private const MAX_LOOP_EXECUTION_TIME = 30;
 
 	private const WAIT_INTERVAL_IN_SECONDS = 20;
 
-	/** @var \Throwable|false|null */
+	/** @var Throwable|false|null */
 	private $exception;
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
+	private LoopInterface $loop;
 
-	/** @var \Psr\Log\LoggerInterface */
-	private $logger;
+	private LoggerInterface $logger;
 
 	protected function setUp(): void
 	{
 		$settings = $this->getSettings();
 		if ($settings->shouldSkipIntegrationTests()) {
 			$this->markTestSkipped();
+
 			return;
 		}
 		if ($settings->getTestInboxSettings() === null) {
-			throw new \Exception('missing testInboxSettings');
+			throw new Exception('missing testInboxSettings');
 		}
 		$this->logger = $this->getLogger();
 		$this->ignoreTimeoutErrors = $settings->shouldIgnoreTimeoutErrors();
 		$this->exception = null;
-		$this->loop = \React\EventLoop\Factory::create();
+		$this->loop = Factory::create();
 	}
 
 	public function testSending(): void
@@ -52,9 +72,9 @@ class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCas
 			function (): void {
 				$this->exception = false;
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->exception = $e;
-			}
+			},
 		);
 
 		$this->addEmailCheckingTimer($time, $subject);
@@ -68,7 +88,7 @@ class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCas
 			new AsyncSmtpConnectionWriterFactory($this->logger),
 			new ConnectorFactory($this->loop, false),
 			$this->logger,
-			$this->getSettings()->getSmtpSettings()
+			$this->getSettings()->getSmtpSettings(),
 		);
 
 		$sender = new AsyncSmtpMessageSender();
@@ -77,11 +97,11 @@ class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCas
 			$sender,
 			$managerFactory->create(),
 			$this->logger,
-			new PromiseTimer($this->loop)
+			new PromiseTimer($this->loop),
 		);
 	}
 
-	private function getMessage(string $subject): \AsyncConnection\Smtp\MailMessage
+	private function getMessage(string $subject): MailMessage
 	{
 		$settings = $this->getSettings();
 
@@ -103,62 +123,67 @@ class AsyncSmtpMailerIntegrationTest extends \AsyncConnection\IntegrationTestCas
 		$startTime = time();
 		$this->loop->addPeriodicTimer(
 			1,
-			function (\React\EventLoop\Timer\Timer $timer) use ($time, $subject, $startTime, $waitingInterval): void {
+			function (Timer $timer) use ($time, $subject, $startTime, $waitingInterval): void {
 				if (time() - $startTime > self::MAX_LOOP_EXECUTION_TIME) {
 					$this->loop->stop();
-					throw new \Exception('Max loop running execution time exceeded.');
+
+					throw new Exception('Max loop running execution time exceeded.');
 				}
 				if ($this->exception === null) {
 					return;
 				}
 
-				if ($this->exception instanceof \Throwable) {
+				if ($this->exception instanceof Throwable) {
 					$this->loop->stop();
-					if ($this->exception instanceof \AsyncConnection\AsyncConnectionTimeoutException
+					if ($this->exception instanceof AsyncConnectionTimeoutException
 						&& $this->ignoreTimeoutErrors) {
 						return;
 					}
 
 					throw $this->exception;
-
-				} elseif ($this->exception === false) {
-					$this->loop->cancelTimer($timer);
-					$waitingInterval = $waitingInterval ?? self::WAIT_INTERVAL_IN_SECONDS;
-					$this->loop->addTimer($waitingInterval, function () use ($time, $subject): void {
-						$this->loop->stop();
-						$settings = $this->getSettings();
-						$inboxSettings = $settings->getTestInboxSettings();
-
-						$imap = imap_open(
-							$inboxSettings->getMailbox(),
-							$inboxSettings->getUsername(),
-							$inboxSettings->getPassword()
-						);
-						if ($imap === false) {
-							$error = imap_last_error();
-							throw new \Exception($error !== false ? $error : 'IMAP error occured.');
-						}
-						$searchQuery = sprintf('SUBJECT "%s" SINCE "%s" FROM "%s"', $time, date('Y-m-d', $time), $settings->getEmailFrom());
-						$emails = imap_search($imap, $searchQuery, SE_UID);
-						if ($emails === false) {
-							imap_close($imap);
-							$this->fail(sprintf('Message %s was not found in inbox', $subject));
-						}
-						$emails = array_filter($emails);
-						if (count($emails) !== 1) {
-							imap_close($imap);
-							$this->fail(sprintf('Message %s was not found in inbox', $subject));
-						}
-
-						$overview = imap_fetch_overview($imap, (string) $emails[0], FT_UID);
-						imap_close($imap);
-
-						$this->assertCount(1, $emails, 'Message was not found in inbox');
-						$this->assertSame($subject, $overview[0]->subject, 'Message was not found in inbox');
-						$this->assertSame($settings->getEmailFrom(), $overview[0]->from);
-					});
 				}
-			}
+
+				if ($this->exception !== false) {
+					return;
+				}
+
+				$this->loop->cancelTimer($timer);
+				$waitingInterval ??= self::WAIT_INTERVAL_IN_SECONDS;
+				$this->loop->addTimer($waitingInterval, function () use ($time, $subject): void {
+					$this->loop->stop();
+					$settings = $this->getSettings();
+					$inboxSettings = $settings->getTestInboxSettings();
+
+					$imap = imap_open(
+						$inboxSettings->getMailbox(),
+						$inboxSettings->getUsername(),
+						$inboxSettings->getPassword(),
+					);
+					if ($imap === false) {
+						$error = imap_last_error();
+
+						throw new Exception($error !== false ? $error : 'IMAP error occured.');
+					}
+					$searchQuery = sprintf('SUBJECT "%s" SINCE "%s" FROM "%s"', $time, date('Y-m-d', $time), $settings->getEmailFrom());
+					$emails = imap_search($imap, $searchQuery, SE_UID);
+					if ($emails === false) {
+						imap_close($imap);
+						$this->fail(sprintf('Message %s was not found in inbox', $subject));
+					}
+					$emails = array_filter($emails);
+					if (count($emails) !== 1) {
+						imap_close($imap);
+						$this->fail(sprintf('Message %s was not found in inbox', $subject));
+					}
+
+					$overview = imap_fetch_overview($imap, (string) $emails[0], FT_UID);
+					imap_close($imap);
+
+					$this->assertCount(1, $emails, 'Message was not found in inbox');
+					$this->assertSame($subject, $overview[0]->subject, 'Message was not found in inbox');
+					$this->assertSame($settings->getEmailFrom(), $overview[0]->from);
+				});
+			},
 		);
 	}
 

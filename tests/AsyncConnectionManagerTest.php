@@ -2,23 +2,31 @@
 
 namespace AsyncConnection;
 
-class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
+use Closure;
+use Exception;
+use Psr\Log\LoggerInterface;
+use React\EventLoop\Factory;
+use React\EventLoop\LoopInterface;
+use React\Promise\Deferred;
+use React\Promise\Timer\TimeoutException;
+use Throwable;
+use function React\Promise\reject;
+use function React\Promise\resolve;
+
+class AsyncConnectionManagerTest extends TestCase
 {
 
-	use \AsyncConnection\AsyncTestTrait;
+	use AsyncTestTrait;
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
+	private LoopInterface $loop;
 
-	/** @var bool */
-	private $streamIsValid = true;
+	private bool $streamIsValid = true;
 
-	/** @var \Psr\Log\LoggerInterface */
-	private $logger;
+	private LoggerInterface $logger;
 
 	protected function setUp(): void
 	{
-		$this->loop = \React\EventLoop\Factory::create();
+		$this->loop = Factory::create();
 		$this->logger = $this->getLogger();
 	}
 
@@ -30,9 +38,9 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 			function (): void {
 				$this->setException(false);
 			},
-			function (\Throwable $exception): void {
+			function (Throwable $exception): void {
 				$this->setException($exception);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -49,18 +57,18 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 						try {
 							$this->setException(false);
 
-						} catch (\Throwable $e) {
+						} catch (Throwable $e) {
 							$this->setException($e);
 						}
 					},
-					function (\Throwable $e): void {
+					function (Throwable $e): void {
 						$this->setException($e);
-					}
+					},
 				);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -73,9 +81,7 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 			0,
 			0,
 			0,
-			function (): bool {
-				return $this->streamIsValid;
-			}
+			fn (): bool => $this->streamIsValid,
 		);
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
@@ -85,14 +91,14 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 					function (): void {
 						$this->setException(false);
 					},
-					function (\Throwable $e): void {
+					function (Throwable $e): void {
 						$this->setException($e);
-					}
+					},
 				);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -103,20 +109,20 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 		$connectorMock = $this->getConnector(1, 0, 2);
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			function (): void {
+			static function (): void {
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$manager->connect()->then(
 			function (): void {
 				$this->setException(false);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -129,25 +135,25 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 		$manager->connect()->then(
 			function () use ($manager): void {
 				$manager->disconnect()->then(
-					function (): void {
+					static function (): void {
 					},
-					function (\Throwable $e): void {
+					function (Throwable $e): void {
 						$this->setException($e);
-					}
+					},
 				);
 
 				$manager->connect()->then(
 					function (): void {
 						$this->setException(false);
 					},
-					function (\Throwable $e): void {
+					function (Throwable $e): void {
 						$this->setException($e);
-					}
+					},
 				);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -163,14 +169,14 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 					function (): void {
 						$this->setException(false);
 					},
-					function (\Throwable $e): void {
+					function (Throwable $e): void {
 						$this->setException($e);
-					}
+					},
 				);
 			},
-			function (\Throwable $exception): void {
+			function (Throwable $exception): void {
 				$this->setException($exception);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -185,13 +191,13 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 				try {
 					$this->assertSame('Not connected.', $message);
 					$this->setException(false);
-				} catch (\Throwable $e) {
+				} catch (Throwable $e) {
 					$this->setException($e);
 				}
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -202,20 +208,20 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 		$connectorMock = $this->getConnector(1, 1, 2);
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			function (): void {
+			static function (): void {
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$manager->disconnect()->then(
 			function (): void {
 				$this->setException(false);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -228,25 +234,25 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 		$manager->connect()->then(
 			function () use ($manager): void {
 				$manager->disconnect()->then(
-					function (): void {
+					static function (): void {
 					},
-					function (\Throwable $e): void {
+					function (Throwable $e): void {
 						$this->setException($e);
-					}
+					},
 				);
 
 				$manager->disconnect()->then(
 					function (): void {
 						$this->setException(false);
 					},
-					function (\Throwable $e): void {
+					function (Throwable $e): void {
 						$this->setException($e);
-					}
+					},
 				);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
@@ -256,19 +262,19 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 	{
 		$connectorMock = $this->createMock(AsyncConnector::class);
 		$connectorMock->method('connect')
-			->willReturn(\React\Promise\reject(new \Exception('Connection failed.')));
+			->willReturn(reject(new Exception('Connection failed.')));
 
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->done(
 			function (): void {
 				$this->setException(false);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
-		$this->runFailedTest($this->loop, function (\Throwable $e): void {
+		$this->runFailedTest($this->loop, function (Throwable $e): void {
 			$this->assertSame('Connection failed.', $e->getMessage());
 		});
 	}
@@ -277,20 +283,20 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 	{
 		$connectorMock = $this->createMock(AsyncConnector::class);
 		$connectorMock->method('connect')
-			->willReturn(\React\Promise\reject(new \React\Promise\Timer\TimeoutException(3, 'Timed out after 3 second')));
+			->willReturn(reject(new TimeoutException(3, 'Timed out after 3 second')));
 
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->done(
 			function (): void {
 				$this->setException(false);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 
-		$this->runFailedTest($this->loop, function (\Throwable $e): void {
-			$this->assertInstanceOf(\AsyncConnection\AsyncConnectionTimeoutException::class, $e);
+		$this->runFailedTest($this->loop, function (Throwable $e): void {
+			$this->assertInstanceOf(AsyncConnectionTimeoutException::class, $e);
 			$this->assertSame('Timed out after 3 second', $e->getMessage());
 		});
 	}
@@ -302,10 +308,10 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 
 		$connectorMock = $this->createMock(AsyncConnector::class);
 		$connectorMock->method('connect')
-			->willReturn(\React\Promise\resolve($writerMock));
+			->willReturn(resolve($writerMock));
 
 		$connectorMock->method('disconnect')
-			->willReturn(\React\Promise\reject(new \Exception('Disconnection failed.')));
+			->willReturn(reject(new Exception('Disconnection failed.')));
 
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
@@ -314,14 +320,14 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 					function (): void {
 						$this->setException(false);
 					},
-					function (\Throwable $e): void {
+					function (Throwable $e): void {
 						$this->setException($e);
-					}
+					},
 				);
-			}
+			},
 		);
 
-		$this->runFailedTest($this->loop, function (\Throwable $e): void {
+		$this->runFailedTest($this->loop, function (Throwable $e): void {
 			$this->assertSame('Disconnection failed.', $e->getMessage());
 		});
 	}
@@ -331,7 +337,7 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 		?int $expectedDisconnectionAttempts = 0,
 		?int $connectionDelayInSeconds = 0,
 		?int $disconnectionDelayInSeconds = 0,
-		?\Closure $isValidCallback = null
+		?Closure $isValidCallback = null
 	): AsyncConnector
 	{
 		$connectorMock = $this->createMock(AsyncConnector::class);
@@ -343,8 +349,8 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 		}
 
 		if ($expectedConnectionAttempts > 0) {
-			$delayedConnection = new \React\Promise\Deferred();
-			$this->loop->addTimer($connectionDelayInSeconds, function () use ($delayedConnection, $writerMock): void {
+			$delayedConnection = new Deferred();
+			$this->loop->addTimer($connectionDelayInSeconds, static function () use ($delayedConnection, $writerMock): void {
 				$delayedConnection->resolve($writerMock);
 			});
 			$connectorMock
@@ -358,8 +364,8 @@ class AsyncConnectionManagerTest extends \AsyncConnection\TestCase
 		}
 
 		if ($expectedDisconnectionAttempts > 0) {
-			$delayedDisconnection = new \React\Promise\Deferred();
-			$this->loop->addTimer($disconnectionDelayInSeconds, function () use ($delayedDisconnection, $writerMock): void {
+			$delayedDisconnection = new Deferred();
+			$this->loop->addTimer($disconnectionDelayInSeconds, static function () use ($delayedDisconnection, $writerMock): void {
 				$delayedDisconnection->resolve($writerMock);
 			});
 			$connectorMock
