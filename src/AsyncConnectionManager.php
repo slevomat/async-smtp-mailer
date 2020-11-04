@@ -2,42 +2,47 @@
 
 namespace AsyncConnection;
 
-class AsyncConnectionManager extends \Consistence\ObjectPrototype
+use Consistence\ObjectPrototype;
+use Psr\Log\LoggerInterface;
+use React\Promise\Deferred;
+use React\Promise\ExtendedPromiseInterface;
+use React\Promise\Timer\TimeoutException;
+use Throwable;
+use function React\Promise\resolve;
+
+class AsyncConnectionManager extends ObjectPrototype
 {
 
-	/** @var \AsyncConnection\AsyncConnector */
-	private $asyncConnector;
+	private AsyncConnector $asyncConnector;
 
-	/** @var \React\Promise\Deferred|null */
-	private $connectionPromise;
+	private ?Deferred $connectionPromise = null;
 
-	/** @var \React\Promise\Deferred|null */
-	private $disconnectionPromise;
+	private ?Deferred $disconnectionPromise = null;
 
-	/** @var \AsyncConnection\AsyncConnectionWriter|null */
-	private $writer;
+	private ?AsyncConnectionWriter $writer = null;
 
-	/** @var \Psr\Log\LoggerInterface */
-	private $logger;
+	private LoggerInterface $logger;
 
 	public function __construct(
 		AsyncConnector $asyncConnector,
-		\Psr\Log\LoggerInterface $logger
+		LoggerInterface $logger
 	)
 	{
 		$this->asyncConnector = $asyncConnector;
 		$this->logger = $logger;
 	}
 
-	public function connect(): \React\Promise\ExtendedPromiseInterface
+	public function connect(): ExtendedPromiseInterface
 	{
 		if ($this->isConnected() && !$this->isDisconnecting()) {
 			$this->logger->debug('Connected');
-			return \React\Promise\resolve(new AsyncConnectionResult($this->writer, false));
+
+			return resolve(new AsyncConnectionResult($this->writer, false));
 		}
 
 		if ($this->isConnecting()) {
 			$this->logger->debug('Already connecting');
+
 			return $this->connectionPromise->promise();
 		}
 
@@ -46,21 +51,22 @@ class AsyncConnectionManager extends \Consistence\ObjectPrototype
 			$waitUntilDisconnectEnds = $this->disconnectionPromise->promise();
 
 		} else {
-			$waitUntilDisconnectEnds = \React\Promise\resolve();
+			$waitUntilDisconnectEnds = resolve();
 		}
 
-		$this->connectionPromise = new \React\Promise\Deferred();
+		$this->connectionPromise = new Deferred();
 
-		$doAfterFailedDisconnect = function (\Throwable $e) {
+		$doAfterFailedDisconnect = function (Throwable $e) {
 			$this->logger->debug('Disconnection failed. No need to reconnect now.');
 			$this->connectionPromise->resolve();
 			$this->connectionPromise = null;
 
-			return \React\Promise\resolve(new AsyncConnectionResult($this->writer, false));
+			return resolve(new AsyncConnectionResult($this->writer, false));
 		};
 
 		return $waitUntilDisconnectEnds->then(function () {
 			$this->logger->debug('Connecting...');
+
 			return $this->asyncConnector->connect()->then(
 				function (AsyncConnectionWriter $writer) {
 					$this->logger->debug('Connecting succeeded');
@@ -68,33 +74,35 @@ class AsyncConnectionManager extends \Consistence\ObjectPrototype
 					$this->connectionPromise->resolve();
 					$this->connectionPromise = null;
 
-					return \React\Promise\resolve(new AsyncConnectionResult($writer, true));
+					return resolve(new AsyncConnectionResult($writer, true));
 				},
-				function (\Throwable $e): void {
+				function (Throwable $e): void {
 					$this->logger->error('Connecting failed');
 					$this->connectionPromise->reject($e);
 					$this->connectionPromise = null;
 
-					if ($e instanceof \React\Promise\Timer\TimeoutException) {
-						throw new \AsyncConnection\AsyncConnectionTimeoutException($e->getMessage(), $e);
+					if ($e instanceof TimeoutException) {
+						throw new AsyncConnectionTimeoutException($e->getMessage(), $e);
 					}
 
 					throw $e;
-				}
+				},
 			);
 		}, $doAfterFailedDisconnect);
 	}
 
-	public function disconnect(): \React\Promise\ExtendedPromiseInterface
+	public function disconnect(): ExtendedPromiseInterface
 	{
 		if ($this->isDisconnecting()) {
 			$this->logger->debug('Already disconnecting');
+
 			return $this->disconnectionPromise->promise();
 		}
 
 		if (!$this->isConnected() && !$this->isConnecting()) {
 			$this->logger->debug('Not connected');
-			return \React\Promise\resolve('Not connected.');
+
+			return resolve('Not connected.');
 		}
 
 		if ($this->isConnecting()) {
@@ -102,10 +110,10 @@ class AsyncConnectionManager extends \Consistence\ObjectPrototype
 			$waitUntilFinished = $this->connectionPromise->promise();
 
 		} else {
-			$waitUntilFinished = \React\Promise\resolve();
+			$waitUntilFinished = resolve();
 		}
 
-		$this->disconnectionPromise = new \React\Promise\Deferred();
+		$this->disconnectionPromise = new Deferred();
 
 		return $waitUntilFinished->then(function () {
 			$this->logger->debug('Disconnection started');
@@ -117,20 +125,20 @@ class AsyncConnectionManager extends \Consistence\ObjectPrototype
 					$this->disconnectionPromise = null;
 					$this->writer = null;
 
-					return \React\Promise\resolve($value);
-				}, function (\Throwable $e): void {
+					return resolve($value);
+				}, function (Throwable $e): void {
 					$this->logger->debug('Disconnection failed');
 					$this->disconnectionPromise->reject();
 					$this->disconnectionPromise = null;
 
 					throw $e;
 				});
-		}, function (\Throwable $e) {
+		}, function (Throwable $e) {
 			$this->logger->error('Connection failed. No need to disconnect now.');
 			$this->disconnectionPromise->resolve();
 			$this->disconnectionPromise = null;
 
-			return \React\Promise\resolve();
+			return resolve();
 		});
 	}
 

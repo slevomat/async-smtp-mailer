@@ -2,7 +2,9 @@
 
 namespace AsyncConnection\Smtp;
 
-class TooManyMessagesException extends \AsyncConnection\AsyncConnectionException
+use AsyncConnection\AsyncConnectionException;
+
+class TooManyMessagesException extends AsyncConnectionException
 {
 
 }

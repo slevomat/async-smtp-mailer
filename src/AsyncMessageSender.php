@@ -2,12 +2,14 @@
 
 namespace AsyncConnection;
 
+use React\Promise\ExtendedPromiseInterface;
+
 interface AsyncMessageSender
 {
 
 	public function sendMessage(
 		AsyncConnectionWriter $writer,
 		AsyncMessage $message
-	): \React\Promise\ExtendedPromiseInterface;
+	): ExtendedPromiseInterface;
 
 }

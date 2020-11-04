@@ -2,7 +2,9 @@
 
 namespace AsyncConnection\Smtp;
 
-class AsyncSmtpConnectionException extends \AsyncConnection\AsyncConnectionException
+use AsyncConnection\AsyncConnectionException;
+
+class AsyncSmtpConnectionException extends AsyncConnectionException
 {
 
 }

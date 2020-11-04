@@ -2,7 +2,7 @@
 
 namespace AsyncConnection;
 
-class AsyncConnectionTimeoutException extends \AsyncConnection\AsyncConnectionException
+class AsyncConnectionTimeoutException extends AsyncConnectionException
 {
 
 }

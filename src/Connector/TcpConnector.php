@@ -2,31 +2,48 @@
 
 namespace AsyncConnection\Connector;
 
-class TcpConnector extends \Consistence\ObjectPrototype implements \React\Socket\ConnectorInterface
+use Consistence\ObjectPrototype;
+use React\EventLoop\LoopInterface;
+use React\Promise\ExtendedPromiseInterface;
+use React\Promise\Promise;
+use React\Socket\Connection;
+use React\Socket\ConnectorInterface;
+use RuntimeException;
+use function fclose;
+use function React\Promise\reject;
+use function sprintf;
+use function stream_context_create;
+use function stream_set_blocking;
+use function stream_socket_client;
+use function stream_socket_get_name;
+use const STREAM_CLIENT_ASYNC_CONNECT;
+use const STREAM_CLIENT_CONNECT;
+
+class TcpConnector extends ObjectPrototype implements ConnectorInterface
 {
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
+	private LoopInterface $loop;
 
-	/** @var mixed[]  */
-	private $context;
+	/** @var mixed[] */
+	private array $context;
 
 	/**
-	 * @param \React\EventLoop\LoopInterface $loop
+	 * @param LoopInterface $loop
 	 * @param mixed[] $context
 	 */
-	public function __construct(\React\EventLoop\LoopInterface $loop, array $context = [])
+	public function __construct(LoopInterface $loop, array $context = [])
 	{
 		$this->loop = $loop;
 		$this->context = $context;
 	}
 
 	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
+	 *
 	 * @param string $uri
-	 * @return \React\Promise\ExtendedPromiseInterface
+	 * @return ExtendedPromiseInterface
 	 */
-	public function connect($uri): \React\Promise\ExtendedPromiseInterface
+	public function connect($uri): ExtendedPromiseInterface
 	{
 		$socket = @stream_socket_client(
 			$uri,
@@ -34,11 +51,11 @@ class TcpConnector extends \Consistence\ObjectPrototype implements \React\Socket
 			$error,
 			0,
 			STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT,
-			stream_context_create($this->context)
+			stream_context_create($this->context),
 		);
 		if ($socket === false) {
-			return \React\Promise\reject(new \RuntimeException(
-				sprintf('Connection to %s failed: %s', $uri, $error)
+			return reject(new RuntimeException(
+				sprintf('Connection to %s failed: %s', $uri, $error),
 			));
 		}
 		stream_set_blocking($socket, false);
@@ -48,14 +65,14 @@ class TcpConnector extends \Consistence\ObjectPrototype implements \React\Socket
 
 	/**
 	 * @param resource $stream
-	 * @return \React\Promise\Promise
+	 * @return Promise
 	 */
-	private function waitForStreamOnce($stream): \React\Promise\Promise
+	private function waitForStreamOnce($stream): Promise
 	{
 		$loop = $this->loop;
 
-		return new \React\Promise\Promise(function ($resolve, $reject) use ($loop, $stream): void {
-			$loop->addWriteStream($stream, function ($stream) use ($loop, $resolve, $reject): void {
+		return new Promise(static function ($resolve, $reject) use ($loop, $stream): void {
+			$loop->addWriteStream($stream, static function ($stream) use ($loop, $resolve, $reject): void {
 				$loop->removeWriteStream($stream);
 
 				// The following hack looks like the only way to
@@ -63,16 +80,16 @@ class TcpConnector extends \Consistence\ObjectPrototype implements \React\Socket
 				if (stream_socket_get_name($stream, true) === false) {
 					fclose($stream);
 
-					$reject(new \RuntimeException('Connection refused'));
+					$reject(new RuntimeException('Connection refused'));
 				} else {
-					$resolve(new \React\Socket\Connection($stream, $loop));
+					$resolve(new Connection($stream, $loop));
 				}
 			});
-		}, function () use ($loop, $stream): void {
+		}, static function () use ($loop, $stream): void {
 			$loop->removeWriteStream($stream);
 			fclose($stream);
 
-			throw new \RuntimeException('Cancelled while waiting for TCP/IP connection to be established');
+			throw new RuntimeException('Cancelled while waiting for TCP/IP connection to be established');
 		});
 	}
 

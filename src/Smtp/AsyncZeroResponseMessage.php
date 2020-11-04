@@ -2,11 +2,13 @@
 
 namespace AsyncConnection\Smtp;
 
-class AsyncZeroResponseMessage extends \Consistence\ObjectPrototype implements \AsyncConnection\AsyncMessage
+use AsyncConnection\AsyncMessage;
+use Consistence\ObjectPrototype;
+
+class AsyncZeroResponseMessage extends ObjectPrototype implements AsyncMessage
 {
 
-	/** @var string */
-	private $text;
+	private string $text;
 
 	public function __construct(string $text)
 	{

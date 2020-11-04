@@ -2,25 +2,28 @@
 
 namespace AsyncConnection\Timer;
 
+use React\EventLoop\LoopInterface;
+use React\Promise\Deferred;
+use React\Promise\ExtendedPromiseInterface;
+
 class PromiseTimer
 {
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
+	private LoopInterface $loop;
 
-	public function __construct(\React\EventLoop\LoopInterface $loop)
+	public function __construct(LoopInterface $loop)
 	{
 		$this->loop = $loop;
 	}
 
 	/**
 	 * @param int|float $seconds
-	 * @return \React\Promise\ExtendedPromiseInterface
+	 * @return ExtendedPromiseInterface
 	 */
-	public function wait($seconds): \React\Promise\ExtendedPromiseInterface
+	public function wait($seconds): ExtendedPromiseInterface
 	{
-		$deferred = new \React\Promise\Deferred();
-		$this->loop->addTimer($seconds, function () use ($deferred): void {
+		$deferred = new Deferred();
+		$this->loop->addTimer($seconds, static function () use ($deferred): void {
 			$deferred->resolve();
 		});
 

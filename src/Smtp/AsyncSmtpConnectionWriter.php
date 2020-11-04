@@ -2,30 +2,44 @@
 
 namespace AsyncConnection\Smtp;
 
+use AsyncConnection\AsyncConnectionWriter;
 use AsyncConnection\AsyncMessage;
+use Consistence\ObjectPrototype;
+use Nette\Mail\Message;
+use Psr\Log\LoggerInterface;
+use React\Promise\Deferred;
+use React\Promise\ExtendedPromiseInterface;
+use React\Socket\ConnectionInterface;
+use Throwable;
+use function array_shift;
+use function count;
+use function implode;
+use function in_array;
+use function preg_match;
+use function React\Promise\reject;
+use function React\Promise\resolve;
+use function sprintf;
+use function trim;
 
-class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements \AsyncConnection\AsyncConnectionWriter
+class AsyncSmtpConnectionWriter extends ObjectPrototype implements AsyncConnectionWriter
 {
 
 	/** @var mixed[][] */
-	private $expectedResponses = [];
+	private array $expectedResponses = [];
 
-	/** @var \React\Socket\ConnectionInterface */
-	private $connection;
+	private ConnectionInterface $connection;
 
-	/** @var \Psr\Log\LoggerInterface */
-	private $logger;
+	private LoggerInterface $logger;
 
-	/** @var \React\Promise\Deferred|null */
-	private $dataProcessingPromise;
+	private ?Deferred $dataProcessingPromise = null;
 
 	public function __construct(
-		\React\Socket\ConnectionInterface $connection,
-		\Psr\Log\LoggerInterface $logger
+		ConnectionInterface $connection,
+		LoggerInterface $logger
 	)
 	{
 		if (!$connection->isReadable() || !$connection->isWritable()) {
-			throw new \AsyncConnection\Smtp\InvalidSmtpConnectionException();
+			throw new InvalidSmtpConnectionException();
 		}
 
 		$connection->on('data', function ($data): void {
@@ -40,7 +54,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 			$this->processNonDataResponse('close', 'SMTP server unexpectedly closed connection.');
 		});
 
-		$connection->on('error', function (\Throwable $e): void {
+		$connection->on('error', function (Throwable $e): void {
 			$this->processNonDataResponse('error', 'SMTP server connection error.', $e);
 		});
 
@@ -53,18 +67,19 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 		return $this->connection->isReadable() && $this->connection->isWritable();
 	}
 
-	public function write(AsyncMessage $message): \React\Promise\ExtendedPromiseInterface
+	public function write(AsyncMessage $message): ExtendedPromiseInterface
 	{
 		$this->logger->debug($message->getText());
 
 		if (!$this->isValid()) {
 			$this->logger->error('stream not valid');
-			return \React\Promise\reject(new \AsyncConnection\Smtp\InvalidSmtpConnectionException());
+
+			return reject(new InvalidSmtpConnectionException());
 		}
 
 		if ($message instanceof AsyncDoubleResponseMessage) {
-			$firstResponse = new \React\Promise\Deferred();
-			$secondResponse = new \React\Promise\Deferred();
+			$firstResponse = new Deferred();
+			$secondResponse = new Deferred();
 			$this->expectedResponses[] = [
 				$firstResponse,
 				$message->getExpectedFirstResponseCodes(),
@@ -78,17 +93,14 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 				$message->getTextReplacement(),
 			];
 
-			$this->connection->write(sprintf('%s%s', $message->getText(), \Nette\Mail\Message::EOL));
+			$this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
 
 			return $firstResponse->promise()
-				->then(function () use ($secondResponse) {
-					return $secondResponse->promise();
-				});
-
+				->then(static fn () => $secondResponse->promise());
 		}
 
-		$deferred = new \React\Promise\Deferred();
-		$this->connection->write(sprintf('%s%s', $message->getText(), \Nette\Mail\Message::EOL));
+		$deferred = new Deferred();
+		$this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
 
 		if ($message instanceof AsyncSingleResponseMessage) {
 			$this->expectedResponses[] = [
@@ -107,7 +119,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 
 	private function processDataResponse(string $data): void
 	{
-		$this->dataProcessingPromise = new \React\Promise\Deferred();
+		$this->dataProcessingPromise = new Deferred();
 
 		$this->logger->debug('RECEIVED DATA: ' . $data);
 
@@ -119,7 +131,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 
 		if (preg_match('~^[\d]{3}$~i', $data) !== 1
 			&& preg_match('~^[\d]{3}[^\d]+~i', $data) !== 1) {
-			$deferred->reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException(sprintf('Unexpected response format: %s.', $data)));
+			$deferred->reject(new AsyncSmtpConnectionException(sprintf('Unexpected response format: %s.', $data)));
 		}
 
 		$code = (int) $data;
@@ -131,19 +143,17 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 			$this->logger->debug('code WRONG');
 			$errorMessage = sprintf(
 				'SMTP server did not accept %s. Expected code: %s. Actual code: %s.',
-				$messageToReplace !== null ? $messageToReplace : sprintf('message %s', $message),
+				$messageToReplace ?? sprintf('message %s', $message),
 				implode('|', $expectedCodes),
-				$code
+				$code,
 			);
 			$tooManyMessagesData = [
 				'550 5.7.0 Requested action not taken: too many emails per second',
 			];
 
-			if (in_array(trim($data), $tooManyMessagesData, true)) {
-				$exception = new \AsyncConnection\Smtp\TooManyMessagesException($errorMessage);
-			} else {
-				$exception = new \AsyncConnection\Smtp\AsyncSmtpConnectionException($errorMessage);
-			}
+			$exception = in_array(trim($data), $tooManyMessagesData, true)
+				? new TooManyMessagesException($errorMessage)
+				: new AsyncSmtpConnectionException($errorMessage);
 
 			$deferred->reject($exception);
 		}
@@ -155,7 +165,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 	private function processNonDataResponse(
 		string $debugMessage,
 		string $exceptionMessage,
-		?\Throwable $previousException = null
+		?Throwable $previousException = null
 	): void
 	{
 		$this->logger->debug($debugMessage);
@@ -163,7 +173,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 			return;
 		}
 
-		$dataProcessingPromise = $this->dataProcessingPromise !== null ? $this->dataProcessingPromise->promise() : \React\Promise\resolve();
+		$dataProcessingPromise = $this->dataProcessingPromise !== null ? $this->dataProcessingPromise->promise() : resolve();
 		$dataProcessingPromise->then(function () use ($exceptionMessage, $previousException): void {
 			if (count($this->expectedResponses) <= 0) {
 				return;
@@ -175,7 +185,7 @@ class AsyncSmtpConnectionWriter extends \Consistence\ObjectPrototype implements 
 					continue;
 				}
 
-				$deferred->reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException($exceptionMessage, $previousException));
+				$deferred->reject(new AsyncSmtpConnectionException($exceptionMessage, $previousException));
 			}
 		});
 	}

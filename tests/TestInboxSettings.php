@@ -2,17 +2,16 @@
 
 namespace AsyncConnection;
 
-class TestInboxSettings extends \Consistence\ObjectPrototype
+use Consistence\ObjectPrototype;
+
+class TestInboxSettings extends ObjectPrototype
 {
 
-	/** @var string */
-	private $mailbox;
+	private string $mailbox;
 
-	/** @var string */
-	private $username;
+	private string $username;
 
-	/** @var string */
-	private $password;
+	private string $password;
 
 	public function __construct(
 		string $mailbox,

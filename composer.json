@@ -21,15 +21,15 @@
 		"react/socket": "^1.0.0"
 	},
 	"require-dev": {
-		"consistence/coding-standard": "^3.0.1",
-		"jakub-onderka/php-parallel-lint": "^1.0.0",
+		"consistence/coding-standard": "^3.10.1",
+		"php-parallel-lint/php-parallel-lint": "^1.2.0",
 		"phing/phing": "^2.16.0",
-		"phpstan/phpstan": "^0.10",
-		"phpstan/phpstan-phpunit": "^0.10",
-		"phpstan/phpstan-strict-rules": "^0.10",
-		"phpunit/phpunit": "^7.0.2",
-		"slevomat/coding-standard": "^4.5.2",
-		"spell-checker/spell-checker": "v0.3.11",
+		"phpstan/phpstan": "^0.12",
+		"phpstan/phpstan-phpunit": "^0.12",
+		"phpstan/phpstan-strict-rules": "^0.12",
+		"phpunit/phpunit": "^9.4.2",
+		"slevomat/coding-standard": "^6.4.1",
+		"spell-checker/spell-checker": "v0.3.16",
 		"spell-checker/dictionary-en": "v0.1.1"
 	},
 	"config": {

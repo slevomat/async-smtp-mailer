@@ -3,32 +3,39 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
+use AsyncConnection\AsyncTestTrait;
+use AsyncConnection\TestCase;
+use Exception;
+use React\EventLoop\Factory;
+use React\EventLoop\LoopInterface;
+use React\Promise\ExtendedPromiseInterface;
+use React\Socket\ConnectionInterface;
+use React\Socket\ConnectorInterface;
+use Throwable;
+use function React\Promise\reject;
+use function React\Promise\resolve;
 
-class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
+class AsyncSmtpConnectorTest extends TestCase
 {
 
-	use \AsyncConnection\AsyncTestTrait;
+	use AsyncTestTrait;
 
 	private const INVALID_USERNAME_MESSAGE = 'Invalid username';
 	private const INVALID_PASSWORD_MESSAGE = 'Invalid password';
 	private const INVALID_CONNECTION_MESSAGE = 'Connection failed';
 	private const INVALID_GREETING_MESSAGE = 'Greeting failed';
 
-	/** @var \React\EventLoop\LoopInterface */
-	private $loop;
+	private LoopInterface $loop;
 
-	/** @var bool */
-	private $heloMessageWasSent;
+	private bool $heloMessageWasSent;
 
-	/** @var bool */
-	private $authLoginWasSent;
+	private bool $authLoginWasSent;
 
-	/** @var bool */
-	private $usernameWasSent;
+	private bool $usernameWasSent;
 
 	protected function setUp(): void
 	{
-		$this->loop = \React\EventLoop\Factory::create();
+		$this->loop = Factory::create();
 		$this->heloMessageWasSent = false;
 		$this->authLoginWasSent = false;
 		$this->usernameWasSent = false;
@@ -41,14 +48,14 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 			$this->loop,
 			function (): void {
 				$this->assertTrue($this->heloMessageWasSent);
-			}
+			},
 		);
 	}
 
 	public function testConnectionFailureReturnsRejectedPromise(): void
 	{
 		$this->createConnectorAndConnect(true);
-		$this->runFailedTest($this->loop, function (\Throwable $e): void {
+		$this->runFailedTest($this->loop, function (Throwable $e): void {
 			$this->assertSame(self::INVALID_CONNECTION_MESSAGE, $e->getMessage());
 		});
 	}
@@ -56,7 +63,7 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 	public function testGreetingFailureReturnsRejectedPromise(): void
 	{
 		$this->createConnectorAndConnect(false, true);
-		$this->runFailedTest($this->loop, function (\Throwable $e): void {
+		$this->runFailedTest($this->loop, function (Throwable $e): void {
 			$this->assertSame(self::INVALID_GREETING_MESSAGE, $e->getMessage());
 		});
 	}
@@ -64,7 +71,7 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 	public function testInvalidUsernameReturnsRejectedPromise(): void
 	{
 		$this->createConnectorAndConnect(false, false, true);
-		$this->runFailedTest($this->loop, function (\Throwable $e): void {
+		$this->runFailedTest($this->loop, function (Throwable $e): void {
 			$this->assertSame(self::INVALID_USERNAME_MESSAGE, $e->getMessage());
 		});
 	}
@@ -72,7 +79,7 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 	public function testInvalidPasswordReturnsRejectedPromise(): void
 	{
 		$this->createConnectorAndConnect(false, false, false, true);
-		$this->runFailedTest($this->loop, function (\Throwable $e): void {
+		$this->runFailedTest($this->loop, function (Throwable $e): void {
 			$this->assertSame(self::INVALID_PASSWORD_MESSAGE, $e->getMessage());
 		});
 	}
@@ -89,9 +96,9 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 			function (): void {
 				$this->setException(false);
 			},
-			function (\Throwable $e): void {
+			function (Throwable $e): void {
 				$this->setException($e);
-			}
+			},
 		);
 	}
 
@@ -102,14 +109,14 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 		bool $passwordIsInvalid = false
 	): AsyncSmtpConnector
 	{
-		$connectorMock = $this->createMock(\React\Socket\ConnectorInterface::class);
-		$connectionMock = $this->createMock(\React\Socket\ConnectionInterface::class);
+		$connectorMock = $this->createMock(ConnectorInterface::class);
+		$connectionMock = $this->createMock(ConnectionInterface::class);
 		$writerMock = $this->createMock(AsyncSmtpConnectionWriter::class);
 		$writerFactoryMock = $this->createMock(AsyncSmtpConnectionWriterFactory::class);
 
 		$connectionResult = $connectionShouldFail
-			? \React\Promise\reject(new \Exception(self::INVALID_CONNECTION_MESSAGE))
-			: \React\Promise\resolve($connectionMock);
+			? reject(new Exception(self::INVALID_CONNECTION_MESSAGE))
+			: resolve($connectionMock);
 		$connectorMock->method('connect')
 			->with('slevomat.cz:25')
 			->willReturn($connectionResult);
@@ -123,16 +130,17 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 				$greetingShouldFail,
 				$usernameIsInvalid,
 				$passwordIsInvalid
-			): \React\Promise\ExtendedPromiseInterface {
+			): ExtendedPromiseInterface {
 				if ($message->getText() === 'EHLO slevomat.cz') {
-					return \React\Promise\reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException(''));
+					return reject(new AsyncSmtpConnectionException(''));
+				}
 
-				} elseif ($message->getText() === 'HELO slevomat.cz') {
+				if ($message->getText() === 'HELO slevomat.cz') {
 					$this->heloMessageWasSent = true;
 
 					return $greetingShouldFail
-						? \React\Promise\reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException(self::INVALID_GREETING_MESSAGE))
-						: \React\Promise\resolve();
+						? reject(new AsyncSmtpConnectionException(self::INVALID_GREETING_MESSAGE))
+						: resolve();
 				}
 
 				if ($message->getText() === 'AUTH LOGIN') {
@@ -143,17 +151,16 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 						$this->usernameWasSent = true;
 
 						return $usernameIsInvalid
-							? \React\Promise\reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException(self::INVALID_USERNAME_MESSAGE))
-							: \React\Promise\resolve();
-
+							? reject(new AsyncSmtpConnectionException(self::INVALID_USERNAME_MESSAGE))
+							: resolve();
 					}
 
 					return $passwordIsInvalid
-						? \React\Promise\reject(new \AsyncConnection\Smtp\AsyncSmtpConnectionException(self::INVALID_PASSWORD_MESSAGE))
-						: \React\Promise\resolve();
+						? reject(new AsyncSmtpConnectionException(self::INVALID_PASSWORD_MESSAGE))
+						: resolve();
 				}
 
-				return \React\Promise\resolve();
+				return resolve();
 			});
 
 		return new AsyncSmtpConnector(
@@ -164,8 +171,8 @@ class AsyncSmtpConnectorTest extends \AsyncConnection\TestCase
 				25,
 				'slevomat.cz',
 				'username',
-				'password'
-			)
+				'password',
+			),
 		);
 	}
 
