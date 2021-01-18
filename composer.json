@@ -10,27 +10,33 @@
 			"homepage": "http://www.slevomat.cz"
 		}
 	],
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "git@github.com:slevomat/consistence-consistence.git"
+		}
+	],
 	"require": {
-		"php-64bit": "~7.2",
-		"consistence/consistence": "^2.0.0",
-		"nette/di": "^3.0",
-		"nette/mail": "^3.0",
-		"psr/log": "^1.0.2",
-		"react/event-loop": "^1.0.0",
-		"react/promise": "^2.7.0",
-		"react/socket": "^1.0.0"
+		"php": "^7.2.0 || ^8.0.0",
+		"consistence/consistence": "dev-master",
+		"nette/di": "^3.0.7",
+		"nette/mail": "^3.1.5",
+		"psr/log": "^1.1.3",
+		"react/event-loop": "^1.1.1",
+		"react/promise": "^2.8.0",
+		"react/socket": "^1.6.0"
 	},
 	"require-dev": {
-		"consistence/coding-standard": "^3.10.1",
 		"php-parallel-lint/php-parallel-lint": "^1.2.0",
-		"phing/phing": "^2.16.0",
-		"phpstan/phpstan": "^0.12",
-		"phpstan/phpstan-phpunit": "^0.12",
+		"phing/phing": "^2.16.3",
+		"phpstan/phpstan": "^0.12.68",
+		"phpstan/phpstan-phpunit": "^0.12.17",
 		"phpstan/phpstan-strict-rules": "^0.12",
-		"phpunit/phpunit": "^9.4.2",
+		"phpunit/phpunit": "^9.5.1",
 		"slevomat/coding-standard": "^6.4.1",
-		"spell-checker/spell-checker": "v0.3.16",
-		"spell-checker/dictionary-en": "v0.1.1"
+		"spell-checker/spell-checker": "v0.3.17",
+		"spell-checker/dictionary-en": "v0.1.1",
+		"squizlabs/php_codesniffer": "^3.5.8"
 	},
 	"config": {
 		"bin-dir": "bin"

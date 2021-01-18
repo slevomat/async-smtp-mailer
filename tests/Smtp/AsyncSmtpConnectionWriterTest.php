@@ -169,10 +169,6 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 
 	/**
 	 * @dataProvider dataSuccessfulWrites
-	 *
-	 * @param AsyncMessage $message
-	 * @param string|null $actualFirstResponse
-	 * @param string|null $actualSecondResponse
 	 */
 	public function testSuccessfulWrites(
 		AsyncMessage $message,
@@ -240,11 +236,6 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 
 	/**
 	 * @dataProvider dataFailedWrites
-	 *
-	 * @param AsyncMessage $message
-	 * @param string|null $actualFirstResponse
-	 * @param string|null $actualSecondResponse
-	 * @param string|null $expectedExceptionMessage
 	 */
 	public function testFailedWrites(
 		AsyncMessage $message,
