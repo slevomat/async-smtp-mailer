@@ -7,7 +7,7 @@ use AsyncConnection\AsyncTestTrait;
 use AsyncConnection\TestCase;
 use Closure;
 use Nette\Utils\Strings;
-use PHPUnit_Framework_MockObject_MockObject;
+use PHPUnit\Framework\MockObject\MockObject;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
 use React\Promise\ExtendedPromiseInterface;
@@ -20,7 +20,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 
 	use AsyncTestTrait;
 
-	/** @var AsyncSmtpConnectionWriter|PHPUnit_Framework_MockObject_MockObject */
+	/** @var AsyncSmtpConnectionWriter|MockObject */
 	private $writerMock;
 
 	private LoopInterface $loop;
@@ -30,7 +30,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 
 	protected function setUp(): void
 	{
-		/** @var AsyncSmtpConnectionWriter|PHPUnit_Framework_MockObject_MockObject $writerMock */
+		/** @var AsyncSmtpConnectionWriter|MockObject $writerMock */
 		$writerMock = $this->createMock(AsyncSmtpConnectionWriter::class);
 		$writerMock->method('isValid')->willReturn(true);
 		$this->writerMock = $writerMock;
@@ -61,8 +61,6 @@ class AsyncSmtpMessageSenderTest extends TestCase
 
 	/**
 	 * @dataProvider dataFailedSendingThrowsException
-	 *
-	 * @param string $messageToFail
 	 */
 	public function testFailedSendingThrowsException(string $messageToFail): void
 	{

@@ -5,7 +5,7 @@ namespace AsyncConnection;
 use AsyncConnection\Timer\PromiseTimer;
 use Closure;
 use Exception;
-use PHPUnit_Framework_MockObject_MockObject;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
@@ -25,13 +25,13 @@ class AsyncMessageQueueManagerTest extends TestCase
 
 	use AsyncTestTrait;
 
-	/** @var AsyncConnectionManager|PHPUnit_Framework_MockObject_MockObject */
+	/** @var AsyncConnectionManager|MockObject */
 	private $connectionManagerMock;
 
-	/** @var AsyncConnectionWriter|PHPUnit_Framework_MockObject_MockObject */
+	/** @var AsyncConnectionWriter|MockObject */
 	private $writerMock;
 
-	/** @var AsyncMessageSender|PHPUnit_Framework_MockObject_MockObject */
+	/** @var AsyncMessageSender|MockObject */
 	private $senderMock;
 
 	private LoopInterface $loop;
