@@ -31,9 +31,8 @@ class AsyncSmtpConnectionIntegrationTest extends IntegrationTestCase
 		$settings = $this->getSettings();
 		if ($settings->shouldSkipIntegrationTests()) {
 			$this->markTestSkipped();
-
-			return;
 		}
+
 		$this->loop = Factory::create();
 		$this->logger = $this->getLogger();
 		$this->ignoreTimeoutErrors($settings->shouldIgnoreTimeoutErrors());

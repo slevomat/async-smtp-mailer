@@ -17,9 +17,7 @@ class AsyncSingleResponseMessage extends ObjectPrototype implements AsyncMessage
 	private ?string $textReplacement = null;
 
 	/**
-	 * @param string $text
 	 * @param int[] $expectedResponseCodes
-	 * @param string|null $textReplacement
 	 */
 	public function __construct(
 		string $text,

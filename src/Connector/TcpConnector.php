@@ -28,7 +28,6 @@ class TcpConnector extends ObjectPrototype implements ConnectorInterface
 	private array $context;
 
 	/**
-	 * @param LoopInterface $loop
 	 * @param mixed[] $context
 	 */
 	public function __construct(LoopInterface $loop, array $context = [])
@@ -41,7 +40,6 @@ class TcpConnector extends ObjectPrototype implements ConnectorInterface
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
 	 *
 	 * @param string $uri
-	 * @return ExtendedPromiseInterface
 	 */
 	public function connect($uri): ExtendedPromiseInterface
 	{
@@ -65,7 +63,6 @@ class TcpConnector extends ObjectPrototype implements ConnectorInterface
 
 	/**
 	 * @param resource $stream
-	 * @return Promise
 	 */
 	private function waitForStreamOnce($stream): Promise
 	{

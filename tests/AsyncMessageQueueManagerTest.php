@@ -415,7 +415,8 @@ class AsyncMessageQueueManagerTest extends TestCase
 				return resolve();
 			}));
 
-		$this->disconnectsCount = $this->connectsCount = 0;
+		$this->disconnectsCount = 0;
+		$this->connectsCount = 0;
 
 		$manager = $this->createManager($maxIntervalBetweenMessages, $maxMessagesPerConnection);
 

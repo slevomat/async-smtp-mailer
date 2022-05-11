@@ -48,9 +48,8 @@ class AsyncSmtpMailerIntegrationTest extends IntegrationTestCase
 		$settings = $this->getSettings();
 		if ($settings->shouldSkipIntegrationTests()) {
 			$this->markTestSkipped();
-
-			return;
 		}
+
 		if ($settings->getTestInboxSettings() === null) {
 			throw new Exception('missing testInboxSettings');
 		}
@@ -141,10 +140,6 @@ class AsyncSmtpMailerIntegrationTest extends IntegrationTestCase
 					}
 
 					throw $this->exception;
-				}
-
-				if ($this->exception !== false) {
-					return;
 				}
 
 				$this->loop->cancelTimer($timer);
