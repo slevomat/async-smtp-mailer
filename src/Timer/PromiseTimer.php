@@ -18,7 +18,6 @@ class PromiseTimer
 
 	/**
 	 * @param int|float $seconds
-	 * @return ExtendedPromiseInterface
 	 */
 	public function wait($seconds): ExtendedPromiseInterface
 	{

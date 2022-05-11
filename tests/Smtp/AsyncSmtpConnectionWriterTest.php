@@ -48,7 +48,11 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	protected function setUp(): void
 	{
 		$this->loop = Factory::create();
-		$this->exception = $this->doOnData = $this->doOnEnd = $this->doOnClose = $this->doOnError = null;
+		$this->exception = null;
+		$this->doOnData = null;
+		$this->doOnEnd = null;
+		$this->doOnClose = null;
+		$this->doOnError = null;
 		$this->serverResponses = [];
 		$this->logger = $this->getLogger();
 	}

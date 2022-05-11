@@ -10,7 +10,7 @@ class MailMessage extends Message implements AsyncMessage
 
 	public function getText(): string
 	{
-		return $this->getBody() ?? 'undefined';
+		return $this->getBody();
 	}
 
 }

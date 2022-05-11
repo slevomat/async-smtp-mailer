@@ -7,6 +7,7 @@ use Consistence\ObjectPrototype;
 use Psr\Log\LoggerInterface;
 use React\Promise\Deferred;
 use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 use Throwable;
 use function array_slice;
 use function array_values;
@@ -50,7 +51,7 @@ class AsyncMessageQueueManager extends ObjectPrototype
 
 	private bool $forceReconnect = false;
 
-	private ExtendedPromiseInterface $minIntervalPromise;
+	private PromiseInterface $minIntervalPromise;
 
 	public function __construct(
 		AsyncMessageSender $asyncMessageSender,
@@ -190,7 +191,7 @@ class AsyncMessageQueueManager extends ObjectPrototype
 		unset($this->messageQueue[$requestsCounter]);
 		$this->processingRequests[$requestsCounter]->resolve();
 
-		$this->minIntervalPromise = $this->minIntervalBetweenMessages === null ? resolve() : $this->promiseTimer->wait($this->minIntervalBetweenMessages);
+		$this->minIntervalPromise = $this->promiseTimer->wait($this->minIntervalBetweenMessages);
 	}
 
 	private function shouldReconnect(): bool

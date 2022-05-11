@@ -23,10 +23,7 @@ class ConnectorFactory extends ObjectPrototype
 	private int $timeoutInSeconds;
 
 	/**
-	 * @param LoopInterface $loop
-	 * @param bool $useSecureConnector
 	 * @param mixed[][] $context
-	 * @param int|null $timeoutInSeconds
 	 */
 	public function __construct(
 		LoopInterface $loop,

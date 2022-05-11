@@ -20,10 +20,8 @@ class AsyncDoubleResponseMessage extends ObjectPrototype implements AsyncMessage
 	private ?string $textReplacement = null;
 
 	/**
-	 * @param string $text
 	 * @param int[] $expectedFirstResponseCodes
 	 * @param int[] $expectedSecondResponseCodes
-	 * @param string|null $textReplacement
 	 */
 	public function __construct(
 		string $text,
