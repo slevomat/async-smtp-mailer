@@ -80,7 +80,7 @@ class AsyncSmtpConnectionIntegrationTest extends IntegrationTestCase
 			$this->assertInstanceOf(RuntimeException::class, $exception);
 			$this->assertStringStartsWith(
 				sprintf(
-					'Connection to %s:%s failed: php_network_getaddresses: getaddrinfo failed',
+					'Connection to %1$s:%2$s failed: php_network_getaddresses: getaddrinfo for %1$s failed: Name or service not known',
 					$settings->getHost(),
 					$settings->getPort(),
 				),
