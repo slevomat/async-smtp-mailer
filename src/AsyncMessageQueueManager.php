@@ -3,7 +3,6 @@
 namespace AsyncConnection;
 
 use AsyncConnection\Timer\PromiseTimer;
-use Consistence\ObjectPrototype;
 use Psr\Log\LoggerInterface;
 use React\Promise\Deferred;
 use React\Promise\ExtendedPromiseInterface;
@@ -16,7 +15,7 @@ use function React\Promise\resolve;
 use function sprintf;
 use function time;
 
-class AsyncMessageQueueManager extends ObjectPrototype
+class AsyncMessageQueueManager
 {
 
 	private const MIN_INTERVAL_BETWEEN_MESSAGES = 0.1;

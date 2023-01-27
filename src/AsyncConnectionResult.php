@@ -2,9 +2,7 @@
 
 namespace AsyncConnection;
 
-use Consistence\ObjectPrototype;
-
-class AsyncConnectionResult extends ObjectPrototype
+class AsyncConnectionResult
 {
 
 	private AsyncConnectionWriter $asyncConnectionWriter;

@@ -2,9 +2,7 @@
 
 namespace AsyncConnection;
 
-use Consistence\ObjectPrototype;
-
-class TestInboxSettings extends ObjectPrototype
+class TestInboxSettings
 {
 
 	private string $mailbox;

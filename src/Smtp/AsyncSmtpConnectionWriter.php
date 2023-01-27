@@ -4,7 +4,6 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncConnectionWriter;
 use AsyncConnection\AsyncMessage;
-use Consistence\ObjectPrototype;
 use Nette\Mail\Message;
 use Psr\Log\LoggerInterface;
 use React\Promise\Deferred;
@@ -21,7 +20,7 @@ use function React\Promise\resolve;
 use function sprintf;
 use function trim;
 
-class AsyncSmtpConnectionWriter extends ObjectPrototype implements AsyncConnectionWriter
+class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 {
 
 	/** @var mixed[][] */
@@ -185,7 +184,7 @@ class AsyncSmtpConnectionWriter extends ObjectPrototype implements AsyncConnecti
 					continue;
 				}
 
-				$deferred->reject(new AsyncSmtpConnectionException($exceptionMessage, $previousException));
+				$deferred->reject(new AsyncSmtpConnectionException($exceptionMessage, 0, $previousException));
 			}
 		});
 	}

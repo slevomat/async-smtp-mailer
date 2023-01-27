@@ -2,9 +2,7 @@
 
 namespace AsyncConnection\Smtp;
 
-use Consistence\ObjectPrototype;
-
-class SmtpCode extends ObjectPrototype
+class SmtpCode
 {
 
 	public const SYSTEM_STATUS = 211; // System status, or system help reply

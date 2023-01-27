@@ -4,10 +4,9 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncConnectionManager;
 use AsyncConnection\Connector\ConnectorFactory;
-use Consistence\ObjectPrototype;
 use Psr\Log\LoggerInterface;
 
-class AsyncSmtpConnectionManagerFactory extends ObjectPrototype
+class AsyncSmtpConnectionManagerFactory
 {
 
 	private AsyncSmtpConnectionWriterFactory $writerFactory;

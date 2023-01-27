@@ -2,7 +2,6 @@
 
 namespace AsyncConnection\Connector;
 
-use Consistence\ObjectPrototype;
 use React\EventLoop\LoopInterface;
 use React\Promise\ExtendedPromiseInterface;
 use React\Promise\Promise;
@@ -19,7 +18,7 @@ use function stream_socket_get_name;
 use const STREAM_CLIENT_ASYNC_CONNECT;
 use const STREAM_CLIENT_CONNECT;
 
-class TcpConnector extends ObjectPrototype implements ConnectorInterface
+class TcpConnector implements ConnectorInterface
 {
 
 	private LoopInterface $loop;

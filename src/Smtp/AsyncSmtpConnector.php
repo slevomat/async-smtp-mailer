@@ -4,7 +4,6 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncConnectionWriter;
 use AsyncConnection\AsyncConnector;
-use Consistence\ObjectPrototype;
 use React\Promise\PromiseInterface;
 use React\Socket\ConnectionInterface;
 use React\Socket\ConnectorInterface;
@@ -12,7 +11,7 @@ use function base64_encode;
 use function React\Promise\resolve;
 use function sprintf;
 
-class AsyncSmtpConnector extends ObjectPrototype implements AsyncConnector
+class AsyncSmtpConnector implements AsyncConnector
 {
 
 	private AsyncSmtpConnectionWriterFactory $asyncSmtpWriterFactory;

@@ -5,7 +5,6 @@ namespace AsyncConnection\Smtp;
 use AsyncConnection\AsyncConnectionWriter;
 use AsyncConnection\AsyncMessage;
 use AsyncConnection\AsyncMessageSender;
-use Consistence\ObjectPrototype;
 use InvalidArgumentException;
 use Nette\Mail\Message;
 use React\Promise\ExtendedPromiseInterface;
@@ -16,7 +15,7 @@ use function preg_replace;
 use function React\Promise\resolve;
 use function sprintf;
 
-class AsyncSmtpMessageSender extends ObjectPrototype implements AsyncMessageSender
+class AsyncSmtpMessageSender implements AsyncMessageSender
 {
 
 	public function sendMessage(AsyncConnectionWriter $writer, AsyncMessage $message): ExtendedPromiseInterface

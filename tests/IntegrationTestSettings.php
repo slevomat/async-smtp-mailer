@@ -3,9 +3,8 @@
 namespace AsyncConnection;
 
 use AsyncConnection\Smtp\SmtpSettings;
-use Consistence\ObjectPrototype;
 
-class IntegrationTestSettings extends ObjectPrototype
+class IntegrationTestSettings
 {
 
 	private bool $skipIntegrationTests;

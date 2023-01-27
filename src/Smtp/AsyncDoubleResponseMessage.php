@@ -3,10 +3,8 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
-use Consistence\ObjectPrototype;
-use Consistence\Type\Type;
 
-class AsyncDoubleResponseMessage extends ObjectPrototype implements AsyncMessage
+class AsyncDoubleResponseMessage implements AsyncMessage
 {
 
 	private string $text;
@@ -30,8 +28,6 @@ class AsyncDoubleResponseMessage extends ObjectPrototype implements AsyncMessage
 		?string $textReplacement = null
 	)
 	{
-		Type::checkType($expectedFirstResponseCodes, 'int[]');
-		Type::checkType($expectedSecondResponseCodes, 'int[]');
 		$this->text = $text;
 		$this->expectedFirstResponseCodes = $expectedFirstResponseCodes;
 		$this->expectedSecondResponseCodes = $expectedSecondResponseCodes;
