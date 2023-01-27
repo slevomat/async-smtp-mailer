@@ -2,7 +2,6 @@
 
 namespace AsyncConnection;
 
-use Consistence\ObjectPrototype;
 use Psr\Log\LoggerInterface;
 use React\Promise\Deferred;
 use React\Promise\ExtendedPromiseInterface;
@@ -10,7 +9,7 @@ use React\Promise\Timer\TimeoutException;
 use Throwable;
 use function React\Promise\resolve;
 
-class AsyncConnectionManager extends ObjectPrototype
+class AsyncConnectionManager
 {
 
 	private AsyncConnector $asyncConnector;
@@ -82,7 +81,7 @@ class AsyncConnectionManager extends ObjectPrototype
 					$this->connectionPromise = null;
 
 					if ($e instanceof TimeoutException) {
-						throw new AsyncConnectionTimeoutException($e->getMessage(), $e);
+						throw new AsyncConnectionTimeoutException($e->getMessage(), $e->getCode(), $e);
 					}
 
 					throw $e;

@@ -2,13 +2,12 @@
 
 namespace AsyncConnection\Connector;
 
-use Consistence\ObjectPrototype;
 use React\EventLoop\LoopInterface;
 use React\Socket\ConnectorInterface;
 use React\Socket\SecureConnector;
 use React\Socket\TimeoutConnector;
 
-class ConnectorFactory extends ObjectPrototype
+class ConnectorFactory
 {
 
 	private const DEFAULT_TIMEOUT_IN_SECONDS = 3;

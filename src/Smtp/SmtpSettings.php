@@ -2,9 +2,7 @@
 
 namespace AsyncConnection\Smtp;
 
-use Consistence\ObjectPrototype;
-
-class SmtpSettings extends ObjectPrototype
+class SmtpSettings
 {
 
 	private string $host;

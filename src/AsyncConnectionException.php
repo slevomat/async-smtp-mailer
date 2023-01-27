@@ -2,9 +2,9 @@
 
 namespace AsyncConnection;
 
-use Consistence\PhpException;
+use Exception;
 
-class AsyncConnectionException extends PhpException
+class AsyncConnectionException extends Exception
 {
 
 }

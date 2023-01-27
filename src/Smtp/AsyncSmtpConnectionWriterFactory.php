@@ -2,11 +2,10 @@
 
 namespace AsyncConnection\Smtp;
 
-use Consistence\ObjectPrototype;
 use Psr\Log\LoggerInterface;
 use React\Socket\ConnectionInterface;
 
-class AsyncSmtpConnectionWriterFactory extends ObjectPrototype
+class AsyncSmtpConnectionWriterFactory
 {
 
 	private LoggerInterface $logger;

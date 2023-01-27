@@ -3,9 +3,8 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
-use Consistence\ObjectPrototype;
 
-class AsyncZeroResponseMessage extends ObjectPrototype implements AsyncMessage
+class AsyncZeroResponseMessage implements AsyncMessage
 {
 
 	private string $text;

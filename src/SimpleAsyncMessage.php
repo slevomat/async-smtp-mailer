@@ -2,9 +2,7 @@
 
 namespace AsyncConnection;
 
-use Consistence\ObjectPrototype;
-
-class SimpleAsyncMessage extends ObjectPrototype implements AsyncMessage
+class SimpleAsyncMessage implements AsyncMessage
 {
 
 	private string $text;
