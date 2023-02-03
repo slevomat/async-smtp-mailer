@@ -94,15 +94,19 @@ class AsyncSmtpMessageSenderTest extends TestCase
 			}));
 
 		$assertOnSuccess = function (): void {
-			$this->assertCount(3, $this->recipients);
-			$this->assertSame('test@seznam.cz', $this->recipients[0]);
-			$this->assertSame('cc@seznam.cz', $this->recipients[1]);
-			$this->assertSame('bcc@seznam.cz', $this->recipients[2]);
+			$this->assertCount(6, $this->recipients);
+			$this->assertSame('aa@seznam.cz', $this->recipients[0]);
+			$this->assertSame('bb@seznam.cz', $this->recipients[1]);
+			$this->assertSame('cc@seznam.cz', $this->recipients[2]);
+			$this->assertSame('dd@seznam.cz', $this->recipients[3]);
+			$this->assertSame('ee@seznam.cz', $this->recipients[4]);
+			$this->assertSame('ff@seznam.cz', $this->recipients[5]);
 		};
 
 		$message = $this->createMessage();
-		$message->setHeader('Cc', ['cc@seznam.cz' => null]);
-		$message->setHeader('Bcc', ['bcc@seznam.cz' => null]);
+		$message->setHeader('To', ['aa@seznam.cz' => null, 'bb@seznam.cz' => null]);
+		$message->setHeader('Cc', ['cc@seznam.cz' => null, 'dd@seznam.cz' => null]);
+		$message->setHeader('Bcc', ['ee@seznam.cz' => null, 'ff@seznam.cz' => null]);
 
 		$this->runSuccessfulSendingTest($message, $assertOnSuccess);
 	}
