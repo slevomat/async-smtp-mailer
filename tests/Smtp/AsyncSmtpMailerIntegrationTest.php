@@ -157,7 +157,7 @@ class AsyncSmtpMailerIntegrationTest extends IntegrationTestCase
 					if ($imap === false) {
 						$error = imap_last_error();
 
-						throw new Exception($error !== false ? $error : 'IMAP error occured.');
+						throw new Exception($error !== false ? $error : 'IMAP error occurred.');
 					}
 					$searchQuery = sprintf('SUBJECT "%s" SINCE "%s" FROM "%s"', $time, date('Y-m-d', $time), $settings->getEmailFrom());
 					$emails = imap_search($imap, $searchQuery, SE_UID);
