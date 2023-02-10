@@ -25,7 +25,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 
 	private LoopInterface $loop;
 
-	/** @var string[] */
+	/** @var array<string> */
 	private array $recipients = [];
 
 	protected function setUp(): void
@@ -45,9 +45,6 @@ class AsyncSmtpMessageSenderTest extends TestCase
 		$this->runSuccessfulSendingTest($this->createMessage());
 	}
 
-	/**
-	 * @return mixed[][]
-	 */
 	public function dataFailedSendingThrowsException(): array
 	{
 		return [

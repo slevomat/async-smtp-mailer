@@ -23,11 +23,11 @@ class TcpConnector implements ConnectorInterface
 
 	private LoopInterface $loop;
 
-	/** @var mixed[] */
+	/** @var array<mixed> */
 	private array $context;
 
 	/**
-	 * @param mixed[] $context
+	 * @param array<mixed> $context
 	 */
 	public function __construct(LoopInterface $loop, array $context = [])
 	{

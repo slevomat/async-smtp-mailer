@@ -32,10 +32,10 @@ class AsyncMessageQueueManager
 
 	private PromiseTimer $promiseTimer;
 
-	/** @var mixed[] */
+	/** @var array<int, AsyncMessage> */
 	private array $messageQueue = [];
 
-	/** @var Deferred[] */
+	/** @var array<Deferred> */
 	private array $processingRequests = [];
 
 	private float $maxIntervalBetweenMessages;
@@ -161,7 +161,7 @@ class AsyncMessageQueueManager
 	}
 
 	/**
-	 * @return mixed[]
+	 * @return array<mixed>
 	 */
 	public function getQueuedMessages(): array
 	{
