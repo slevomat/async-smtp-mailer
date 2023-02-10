@@ -9,13 +9,13 @@ class AsyncSingleResponseMessage implements AsyncMessage
 
 	private string $text;
 
-	/** @var int[] */
+	/** @var array<int> */
 	private array $expectedResponseCodes = [];
 
 	private ?string $textReplacement = null;
 
 	/**
-	 * @param int[] $expectedResponseCodes
+	 * @param array<int> $expectedResponseCodes
 	 */
 	public function __construct(
 		string $text,
@@ -34,7 +34,7 @@ class AsyncSingleResponseMessage implements AsyncMessage
 	}
 
 	/**
-	 * @return int[]
+	 * @return array<int>
 	 */
 	public function getExpectedResponseCodes(): array
 	{

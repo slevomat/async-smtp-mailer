@@ -104,13 +104,29 @@
 		</properties>
 	</rule>
 	<rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
+	<rule ref="SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing"/>
+	<rule ref="SlevomatCodingStandard.Attributes.AttributesOrder">
+		<properties>
+			<property name="order" type="array">
+				<element value="Get"/>
+				<element value="Set"/>
+			</property>
+		</properties>
+	</rule>
+	<rule ref="SlevomatCodingStandard.Attributes.DisallowAttributesJoining"/>
+	<rule ref="SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine"/>
+	<rule ref="SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment"/>
+	<rule ref="SlevomatCodingStandard.Classes.BackedEnumTypeSpacing"/>
 	<rule ref="SlevomatCodingStandard.Classes.ClassConstantVisibility"/>
 	<rule ref="SlevomatCodingStandard.Classes.ClassMemberSpacing"/>
 	<rule ref="SlevomatCodingStandard.Classes.ClassStructure">
 		<properties>
 			<property name="groups" type="array">
 				<element value="uses"/>
-				<element value="constants"/>
+				<element value="enum cases"/>
+				<element value="public constants"/>
+				<element value="protected constants"/>
+				<element value="private constants"/>
 				<element value="properties"/>
 				<element value="constructor"/>
 				<element value="static constructors"/>
@@ -132,11 +148,13 @@
 	<rule ref="SlevomatCodingStandard.Classes.MethodSpacing"/>
 	<rule ref="SlevomatCodingStandard.Classes.ModernClassNameReference"/>
 	<rule ref="SlevomatCodingStandard.Classes.ParentCallSpacing"/>
-	<rule ref="SlevomatCodingStandard.Classes.PropertySpacing">
+	<rule ref="SlevomatCodingStandard.Classes.PropertyDeclaration">
 		<properties>
-			<property name="minLinesCountBeforeWithComment" value="0"/>
+			<property name="checkPromoted" value="true"/>
+			<property name="enableMultipleSpacesBetweenModifiersCheck" value="true"/>
 		</properties>
 	</rule>
+	<rule ref="SlevomatCodingStandard.Classes.PropertySpacing"/>
 	<rule ref="SlevomatCodingStandard.Classes.RequireConstructorPropertyPromotion"/>
 	<rule ref="SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature">
 		<properties>
@@ -153,6 +171,7 @@
 	</rule>
 	<rule ref="SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming">
 		<exclude name="SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming.SuperfluousSuffix"/>
+		<rule ref="SlevomatCodingStandard.Classes.SuperfluousTraitNaming"/>
 	</rule>
 	<rule ref="SlevomatCodingStandard.Classes.TraitUseDeclaration"/>
 	<rule ref="SlevomatCodingStandard.Classes.TraitUseSpacing"/>
@@ -172,8 +191,7 @@
 					@see,
 				"/>
 				<element value="
-					@get,
-					@set,
+					@var,
 				"/>
 				<element value="
 					@param,
@@ -201,8 +219,9 @@
 				<element value="@copyright"/>
 				<element value="@license"/>
 				<element value="@package"/>
-				<element value="@throws"/>
 				<element value="@version"/>
+				<element value="@get"/>
+				<element value="@set"/>
 			</property>
 		</properties>
 	</rule>
@@ -305,9 +324,24 @@
 			<property name="allowMultiLine" value="true"/>
 		</properties>
 	</rule>
-	<rule ref="SlevomatCodingStandard.Functions.DisallowNamedArguments"/>
+	<rule ref="SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall">
+		<properties>
+			<property name="onlySingleLine" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="SlevomatCodingStandard.Functions.DisallowTrailingCommaInClosureUse">
+		<properties>
+			<property name="onlySingleLine" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration">
+		<properties>
+			<property name="onlySingleLine" value="true"/>
+		</properties>
+	</rule>
 	<rule ref="SlevomatCodingStandard.Functions.RequireArrowFunction"/>
 	<rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall"/>
+	<rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInClosureUse"/>
 	<rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration"/>
 	<rule ref="SlevomatCodingStandard.Functions.StaticClosure"/>
 	<rule ref="SlevomatCodingStandard.Functions.StrictCall"/>
@@ -321,7 +355,6 @@
 	<rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
 		<properties>
 			<property name="searchAnnotations" value="true"/>
-			<property name="fullyQualifiedKeywords" type="array" value=""/>
 			<property name="allowFallbackGlobalFunctions" value="false"/>
 			<property name="allowFallbackGlobalConstants" value="false"/>
 			<property name="allowFullyQualifiedExceptions" value="false"/>
@@ -362,6 +395,7 @@
 			<property name="declareOnFirstLine" value="true"/>
 		</properties>
 	</rule>
+	<rule ref="SlevomatCodingStandard.TypeHints.DisallowArrayTypeHintSyntax"/>
 	<rule ref="SlevomatCodingStandard.TypeHints.LongTypeHints"/>
 	<rule ref="SlevomatCodingStandard.TypeHints.NullTypeHintOnLastPosition"/>
 	<rule ref="SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue"/>
@@ -381,7 +415,6 @@
 			</property>
 		</properties>
 	</rule>
-	<rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHintSpacing"/>
 	<rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint">
 		<properties>
 			<property name="traversableTypeHints" type="array">
@@ -401,7 +434,7 @@
 		</properties>
 	</rule>
 	<rule ref="SlevomatCodingStandard.TypeHints.UselessConstantTypeHint"/>
-	<!--<rule ref="SlevomatCodingStandard.Variables.DisallowSuperGlobalVariable"/>-->
+	<rule ref="SlevomatCodingStandard.Variables.DisallowSuperGlobalVariable" />
 	<rule ref="SlevomatCodingStandard.Variables.DuplicateAssignmentToVariable"/>
 	<rule ref="SlevomatCodingStandard.Variables.UnusedVariable"/>
 	<rule ref="SlevomatCodingStandard.Variables.UselessVariable"/>
@@ -458,7 +491,6 @@
 	</rule>
 	<rule ref="Squiz.PHP.DisallowMultipleAssignments"/>
 	<rule ref="Squiz.PHP.GlobalKeyword"/>
-	<rule ref="Squiz.PHP.Heredoc"/>
 	<rule ref="Squiz.PHP.InnerFunctions"/>
 	<rule ref="Squiz.PHP.LowercasePHPFunctions"/>
 	<rule ref="Squiz.PHP.NonExecutableCode"/>

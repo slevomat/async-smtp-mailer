@@ -16,13 +16,13 @@ class ConnectorFactory
 
 	private bool $useSecureConnector;
 
-	/** @var mixed[][] */
+	/** @var array<array<mixed>> */
 	private array $context;
 
 	private int $timeoutInSeconds;
 
 	/**
-	 * @param mixed[][] $context
+	 * @param array<array<mixed>> $context
 	 */
 	public function __construct(
 		LoopInterface $loop,

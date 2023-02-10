@@ -9,17 +9,17 @@ class AsyncDoubleResponseMessage implements AsyncMessage
 
 	private string $text;
 
-	/** @var int[] */
+	/** @var array<int> */
 	private array $expectedFirstResponseCodes = [];
 
-	/** @var int[] */
+	/** @var array<int> */
 	private array $expectedSecondResponseCodes = [];
 
 	private ?string $textReplacement = null;
 
 	/**
-	 * @param int[] $expectedFirstResponseCodes
-	 * @param int[] $expectedSecondResponseCodes
+	 * @param array<int> $expectedFirstResponseCodes
+	 * @param array<int> $expectedSecondResponseCodes
 	 */
 	public function __construct(
 		string $text,
@@ -40,7 +40,7 @@ class AsyncDoubleResponseMessage implements AsyncMessage
 	}
 
 	/**
-	 * @return int[]
+	 * @return array<int>
 	 */
 	public function getExpectedFirstResponseCodes(): array
 	{
@@ -48,7 +48,7 @@ class AsyncDoubleResponseMessage implements AsyncMessage
 	}
 
 	/**
-	 * @return int[]
+	 * @return array<int>
 	 */
 	public function getExpectedSecondResponseCodes(): array
 	{

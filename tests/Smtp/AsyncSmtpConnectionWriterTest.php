@@ -40,7 +40,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 
 	private ?Closure $doOnError = null;
 
-	/** @var string[] */
+	/** @var array<string> */
 	private array $serverResponses;
 
 	private LoggerInterface $logger;
@@ -124,9 +124,6 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		);
 	}
 
-	/**
-	 * @return mixed[][]
-	 */
 	public function dataSuccessfulWrites(): array
 	{
 		return [
@@ -196,9 +193,6 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		);
 	}
 
-	/**
-	 * @return mixed[][]
-	 */
 	public function dataFailedWrites(): array
 	{
 		return [

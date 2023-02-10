@@ -23,7 +23,7 @@ use function trim;
 class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 {
 
-	/** @var mixed[][] */
+	/** @var array<array<mixed>> */
 	private array $expectedResponses = [];
 
 	private ConnectionInterface $connection;
