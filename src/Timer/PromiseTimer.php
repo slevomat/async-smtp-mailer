@@ -4,7 +4,7 @@ namespace AsyncConnection\Timer;
 
 use React\EventLoop\LoopInterface;
 use React\Promise\Deferred;
-use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 
 class PromiseTimer
 {
@@ -19,11 +19,11 @@ class PromiseTimer
 	/**
 	 * @param int|float $seconds
 	 */
-	public function wait($seconds): ExtendedPromiseInterface
+	public function wait($seconds): PromiseInterface
 	{
 		$deferred = new Deferred();
 		$this->loop->addTimer($seconds, static function () use ($deferred): void {
-			$deferred->resolve();
+			$deferred->resolve(null);
 		});
 
 		return $deferred->promise();

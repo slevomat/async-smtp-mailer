@@ -8,7 +8,7 @@ use AsyncConnection\TestCase;
 use Exception;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
-use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 use React\Socket\ConnectionInterface;
 use React\Socket\ConnectorInterface;
 use Throwable;
@@ -130,7 +130,7 @@ class AsyncSmtpConnectorTest extends TestCase
 				$greetingShouldFail,
 				$usernameIsInvalid,
 				$passwordIsInvalid
-			): ExtendedPromiseInterface {
+			): PromiseInterface {
 				if ($message->getText() === 'EHLO slevomat.cz') {
 					return reject(new AsyncSmtpConnectionException(''));
 				}
@@ -140,7 +140,7 @@ class AsyncSmtpConnectorTest extends TestCase
 
 					return $greetingShouldFail
 						? reject(new AsyncSmtpConnectionException(self::INVALID_GREETING_MESSAGE))
-						: resolve();
+						: resolve(null);
 				}
 
 				if ($message->getText() === 'AUTH LOGIN') {
@@ -152,15 +152,15 @@ class AsyncSmtpConnectorTest extends TestCase
 
 						return $usernameIsInvalid
 							? reject(new AsyncSmtpConnectionException(self::INVALID_USERNAME_MESSAGE))
-							: resolve();
+							: resolve(null);
 					}
 
 					return $passwordIsInvalid
 						? reject(new AsyncSmtpConnectionException(self::INVALID_PASSWORD_MESSAGE))
-						: resolve();
+						: resolve(null);
 				}
 
-				return resolve();
+				return resolve(null);
 			});
 
 		return new AsyncSmtpConnector(

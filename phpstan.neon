@@ -4,10 +4,9 @@ includes:
 	- vendor/phpstan/phpstan-strict-rules/rules.neon
 
 parameters:
-	ignoreErrors:
-		- '#should return React\\Promise\\ExtendedPromiseInterface but returns React\\Promise\\PromiseInterface#'
-		- '#should be covariant with return type \(React\\Promise\\PromiseInterface#'
+	checkGenericClassInNonGenericObjectType: false
 
+	ignoreErrors:
 		# ignored strict rules
 		- '#Dynamic call to static method#'
 		- '#Call to method PHPUnit\\Framework\\Assert::assertTrue\(\) with true will always evaluate to true\.#'

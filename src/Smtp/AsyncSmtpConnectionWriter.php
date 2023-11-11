@@ -7,7 +7,7 @@ use AsyncConnection\AsyncMessage;
 use Nette\Mail\Message;
 use Psr\Log\LoggerInterface;
 use React\Promise\Deferred;
-use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 use React\Socket\ConnectionInterface;
 use Throwable;
 use function array_shift;
@@ -66,7 +66,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 		return $this->connection->isReadable() && $this->connection->isWritable();
 	}
 
-	public function write(AsyncMessage $message): ExtendedPromiseInterface
+	public function write(AsyncMessage $message): PromiseInterface
 	{
 		$this->logger->debug($message->getText());
 
@@ -110,7 +110,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 			];
 
 		} else {
-			$deferred->resolve();
+			$deferred->resolve(null);
 		}
 
 		return $deferred->promise();
@@ -136,7 +136,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 		$code = (int) $data;
 		if (in_array($code, $expectedCodes, true)) {
 			$this->logger->debug('code OK');
-			$deferred->resolve();
+			$deferred->resolve(null);
 
 		} else {
 			$this->logger->debug('code WRONG');
@@ -157,7 +157,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 			$deferred->reject($exception);
 		}
 
-		$this->dataProcessingPromise->resolve();
+		$this->dataProcessingPromise->resolve(null);
 		$this->dataProcessingPromise = null;
 	}
 
@@ -172,7 +172,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 			return;
 		}
 
-		$dataProcessingPromise = $this->dataProcessingPromise !== null ? $this->dataProcessingPromise->promise() : resolve();
+		$dataProcessingPromise = $this->dataProcessingPromise !== null ? $this->dataProcessingPromise->promise() : resolve(null);
 		$dataProcessingPromise->then(function () use ($exceptionMessage, $previousException): void {
 			if (count($this->expectedResponses) <= 0) {
 				return;

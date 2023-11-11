@@ -96,9 +96,9 @@ class AsyncSmtpConnectionIntegrationTest extends IntegrationTestCase
 		$settings = $this->getSettings()->getSmtpSettings();
 
 		$connection = $this->createConnectionManager($settings);
-		$connection->connect()->done(
+		$connection->connect()->then(
 			function () use ($connection): void {
-				$connection->connect()->done(
+				$connection->connect()->then(
 					function (): void {
 						$this->setException(false);
 					},
@@ -118,7 +118,7 @@ class AsyncSmtpConnectionIntegrationTest extends IntegrationTestCase
 	private function successfulConnectionTest(SmtpSettings $settings): void
 	{
 		$connection = $this->createConnectionManager($settings);
-		$connection->connect()->done(
+		$connection->connect()->then(
 			function (): void {
 				$this->setException(false);
 			},
@@ -137,7 +137,7 @@ class AsyncSmtpConnectionIntegrationTest extends IntegrationTestCase
 	): void
 	{
 		$connection = $this->createConnectionManager($settings);
-		$connection->connect()->done(
+		$connection->connect()->then(
 			function (): void {
 				$this->setException(false);
 			},

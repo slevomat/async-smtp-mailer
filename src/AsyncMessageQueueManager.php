@@ -5,7 +5,6 @@ namespace AsyncConnection;
 use AsyncConnection\Timer\PromiseTimer;
 use Psr\Log\LoggerInterface;
 use React\Promise\Deferred;
-use React\Promise\ExtendedPromiseInterface;
 use React\Promise\PromiseInterface;
 use Throwable;
 use function array_slice;
@@ -69,10 +68,10 @@ class AsyncMessageQueueManager
 		$this->maxIntervalBetweenMessages = $maxIntervalBetweenMessages ?? self::MAX_INTERVAL_BETWEEN_MESSAGES;
 		$this->minIntervalBetweenMessages = $minIntervalBetweenMessages ?? self::MIN_INTERVAL_BETWEEN_MESSAGES;
 		$this->maxMessagesPerConnection = $maxMessagesPerConnection ?? self::MAX_MESSAGES_PER_CONNECTION;
-		$this->minIntervalPromise = resolve();
+		$this->minIntervalPromise = resolve(true);
 	}
 
-	public function send(AsyncMessage $message): ExtendedPromiseInterface
+	public function send(AsyncMessage $message): PromiseInterface
 	{
 		static $requestsCounter = 0;
 		$previousRequestsCount = $requestsCounter;
@@ -83,7 +82,7 @@ class AsyncMessageQueueManager
 		$this->messageQueue[$requestsCounter] = $message;
 
 		if (count($this->messageQueue) === 1) {
-			$previousRequestPromise = resolve();
+			$previousRequestPromise = resolve(null);
 
 		} else {
 			/** @var Deferred $previousRequest */
@@ -99,12 +98,12 @@ class AsyncMessageQueueManager
 			function () use ($requestsCounter) {
 				$this->log('previous request finished', $requestsCounter);
 
-				return resolve();
+				return resolve(true);
 			},
 			function (Throwable $e) use ($requestsCounter) {
 				$this->log('previous request failed', $requestsCounter);
 
-				return resolve();
+				return resolve(true);
 			},
 		)->then(
 			function () use ($requestsCounter) {
@@ -112,7 +111,7 @@ class AsyncMessageQueueManager
 					return $this->reconnect($requestsCounter);
 				}
 
-				return resolve();
+				return resolve(true);
 			},
 		)->then(
 			function () use ($requestsCounter) {
@@ -182,13 +181,13 @@ class AsyncMessageQueueManager
 	{
 		unset($this->messageQueue[$requestsCounter]);
 		$this->processingRequests[$requestsCounter]->reject($exception);
-		$this->minIntervalPromise = resolve();
+		$this->minIntervalPromise = resolve(true);
 	}
 
 	private function finishWithSuccess(int $requestsCounter): void
 	{
 		unset($this->messageQueue[$requestsCounter]);
-		$this->processingRequests[$requestsCounter]->resolve();
+		$this->processingRequests[$requestsCounter]->resolve(null);
 
 		$this->minIntervalPromise = $this->promiseTimer->wait($this->minIntervalBetweenMessages);
 	}
@@ -200,15 +199,15 @@ class AsyncMessageQueueManager
 			|| $this->forceReconnect;
 	}
 
-	private function reconnect(int $requestsCounter): ExtendedPromiseInterface
+	private function reconnect(int $requestsCounter): PromiseInterface
 	{
 		$this->log('reconnecting started', $requestsCounter);
 		$this->forceReconnect = false;
 
-		return $this->asyncConnectionManager->disconnect()->then(function (): ExtendedPromiseInterface {
+		return $this->asyncConnectionManager->disconnect()->then(function (): PromiseInterface {
 			$this->resetSentMessagesCounter();
 
-			return resolve();
+			return resolve(true);
 		});
 	}
 

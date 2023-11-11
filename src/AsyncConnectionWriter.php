@@ -2,13 +2,13 @@
 
 namespace AsyncConnection;
 
-use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 
 interface AsyncConnectionWriter
 {
 
 	public function isValid(): bool;// checks whether server has not closed connection meanwhile
 
-	public function write(AsyncMessage $message): ExtendedPromiseInterface;
+	public function write(AsyncMessage $message): PromiseInterface;
 
 }

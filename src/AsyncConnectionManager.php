@@ -4,7 +4,7 @@ namespace AsyncConnection;
 
 use Psr\Log\LoggerInterface;
 use React\Promise\Deferred;
-use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 use React\Promise\Timer\TimeoutException;
 use Throwable;
 use function React\Promise\resolve;
@@ -31,7 +31,7 @@ class AsyncConnectionManager
 		$this->logger = $logger;
 	}
 
-	public function connect(): ExtendedPromiseInterface
+	public function connect(): PromiseInterface
 	{
 		if ($this->isConnected() && !$this->isDisconnecting()) {
 			$this->logger->debug('Connected');
@@ -50,14 +50,14 @@ class AsyncConnectionManager
 			$waitUntilDisconnectEnds = $this->disconnectionPromise->promise();
 
 		} else {
-			$waitUntilDisconnectEnds = resolve();
+			$waitUntilDisconnectEnds = resolve(true);
 		}
 
 		$this->connectionPromise = new Deferred();
 
 		$doAfterFailedDisconnect = function (Throwable $e) {
 			$this->logger->debug('Disconnection failed. No need to reconnect now.');
-			$this->connectionPromise->resolve();
+			$this->connectionPromise->resolve(null);
 			$this->connectionPromise = null;
 
 			return resolve(new AsyncConnectionResult($this->writer, false));
@@ -70,7 +70,7 @@ class AsyncConnectionManager
 				function (AsyncConnectionWriter $writer) {
 					$this->logger->debug('Connecting succeeded');
 					$this->writer = $writer;
-					$this->connectionPromise->resolve();
+					$this->connectionPromise->resolve(null);
 					$this->connectionPromise = null;
 
 					return resolve(new AsyncConnectionResult($writer, true));
@@ -90,7 +90,7 @@ class AsyncConnectionManager
 		}, $doAfterFailedDisconnect);
 	}
 
-	public function disconnect(): ExtendedPromiseInterface
+	public function disconnect(): PromiseInterface
 	{
 		if ($this->isDisconnecting()) {
 			$this->logger->debug('Already disconnecting');
@@ -109,7 +109,7 @@ class AsyncConnectionManager
 			$waitUntilFinished = $this->connectionPromise->promise();
 
 		} else {
-			$waitUntilFinished = resolve();
+			$waitUntilFinished = resolve(true);
 		}
 
 		$this->disconnectionPromise = new Deferred();
@@ -120,24 +120,24 @@ class AsyncConnectionManager
 			return $this->asyncConnector->disconnect($this->writer)
 				->then(function ($value) {
 					$this->logger->debug('Disconnection succeeded');
-					$this->disconnectionPromise->resolve();
+					$this->disconnectionPromise->resolve(null);
 					$this->disconnectionPromise = null;
 					$this->writer = null;
 
 					return resolve($value);
 				}, function (Throwable $e): void {
 					$this->logger->debug('Disconnection failed');
-					$this->disconnectionPromise->reject();
+					$this->disconnectionPromise->reject($e);
 					$this->disconnectionPromise = null;
 
 					throw $e;
 				});
 		}, function (Throwable $e) {
 			$this->logger->error('Connection failed. No need to disconnect now.');
-			$this->disconnectionPromise->resolve();
+			$this->disconnectionPromise->resolve(null);
 			$this->disconnectionPromise = null;
 
-			return resolve();
+			return resolve(true);
 		});
 	}
 
