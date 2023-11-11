@@ -84,8 +84,6 @@
 				passthru="true"
 				checkreturn="true"
 		>
-			<arg value="-c"/>
-			<arg value="tests/phpunit.xml"/>
 			<arg path="tests"/>
 		</exec>
 	</target>

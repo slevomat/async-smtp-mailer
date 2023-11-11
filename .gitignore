@@ -1,7 +1,6 @@
 /vendor
 /bin
 /composer.lock
-/tests/.phpunit.result.cache
 /tests/config.neon
 /temp
 

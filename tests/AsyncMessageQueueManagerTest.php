@@ -36,7 +36,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 
 	private LoopInterface $loop;
 
-	/** @var array<string, bool|string> */
+	/** @var array<string, bool|Throwable> */
 	private array $exceptions = [];
 
 	private int $disconnectsCount = 0;

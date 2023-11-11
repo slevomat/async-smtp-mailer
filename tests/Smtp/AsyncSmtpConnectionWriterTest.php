@@ -10,6 +10,7 @@ use AsyncConnection\TestCase;
 use Closure;
 use Exception;
 use Nette\Mail\Message;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
@@ -124,7 +125,10 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		);
 	}
 
-	public function dataSuccessfulWrites(): array
+	/**
+	 * @return list<array{0: AsyncDoubleResponseMessage, 1: string, 2?: string}>
+	 */
+	public static function dataSuccessfulWrites(): array
 	{
 		return [
 			[
@@ -168,9 +172,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		];
 	}
 
-	/**
-	 * @dataProvider dataSuccessfulWrites
-	 */
+	#[DataProvider('dataSuccessfulWrites')]
 	public function testSuccessfulWrites(
 		AsyncMessage $message,
 		?string $actualFirstResponse = null,
@@ -193,7 +195,10 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		);
 	}
 
-	public function dataFailedWrites(): array
+	/**
+	 * @return list<array{0: AsyncDoubleResponseMessage, 1: string, 2: string|null, 3: string}>
+	 */
+	public static function dataFailedWrites(): array
 	{
 		return [
 			//invalid first response
@@ -232,9 +237,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		];
 	}
 
-	/**
-	 * @dataProvider dataFailedWrites
-	 */
+	#[DataProvider('dataFailedWrites')]
 	public function testFailedWrites(
 		AsyncMessage $message,
 		?string $actualFirstResponse = null,
