@@ -34,7 +34,7 @@ class AsyncConnectionManagerTest extends TestCase
 	{
 		$connectorMock = $this->getConnector();
 		$manager = $this->getConnectionManager($connectorMock);
-		$manager->connect()->done(
+		$manager->connect()->then(
 			function (): void {
 				$this->setException(false);
 			},
@@ -52,7 +52,7 @@ class AsyncConnectionManagerTest extends TestCase
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
 			function () use ($manager): void {
-				$manager->connect()->done(
+				$manager->connect()->then(
 					function (): void {
 						try {
 							$this->setException(false);
@@ -87,7 +87,7 @@ class AsyncConnectionManagerTest extends TestCase
 		$manager->connect()->then(
 			function () use ($manager): void {
 				$this->streamIsValid = false;
-				$manager->connect()->done(
+				$manager->connect()->then(
 					function (): void {
 						$this->setException(false);
 					},
@@ -165,7 +165,7 @@ class AsyncConnectionManagerTest extends TestCase
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
 			function () use ($manager): void {
-				$manager->disconnect()->done(
+				$manager->disconnect()->then(
 					function (): void {
 						$this->setException(false);
 					},
@@ -186,7 +186,7 @@ class AsyncConnectionManagerTest extends TestCase
 	{
 		$connectorMock = $this->getConnector(0, 0);
 		$manager = $this->getConnectionManager($connectorMock);
-		$manager->disconnect()->done(
+		$manager->disconnect()->then(
 			function ($message): void {
 				try {
 					$this->assertSame('Not connected.', $message);
@@ -265,7 +265,7 @@ class AsyncConnectionManagerTest extends TestCase
 			->willReturn(reject(new Exception('Connection failed.')));
 
 		$manager = $this->getConnectionManager($connectorMock);
-		$manager->connect()->done(
+		$manager->connect()->then(
 			function (): void {
 				$this->setException(false);
 			},
@@ -286,7 +286,7 @@ class AsyncConnectionManagerTest extends TestCase
 			->willReturn(reject(new TimeoutException(3, 'Timed out after 3 second')));
 
 		$manager = $this->getConnectionManager($connectorMock);
-		$manager->connect()->done(
+		$manager->connect()->then(
 			function (): void {
 				$this->setException(false);
 			},
@@ -316,7 +316,7 @@ class AsyncConnectionManagerTest extends TestCase
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
 			function () use ($manager): void {
-				$manager->disconnect()->done(
+				$manager->disconnect()->then(
 					function (): void {
 						$this->setException(false);
 					},

@@ -3,8 +3,8 @@
 namespace AsyncConnection\Connector;
 
 use React\EventLoop\LoopInterface;
-use React\Promise\ExtendedPromiseInterface;
 use React\Promise\Promise;
+use React\Promise\PromiseInterface;
 use React\Socket\Connection;
 use React\Socket\ConnectorInterface;
 use RuntimeException;
@@ -40,7 +40,7 @@ class TcpConnector implements ConnectorInterface
 	 *
 	 * @param string $uri
 	 */
-	public function connect($uri): ExtendedPromiseInterface
+	public function connect($uri): PromiseInterface
 	{
 		$socket = @stream_socket_client(
 			$uri,

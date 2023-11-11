@@ -67,7 +67,7 @@ class AsyncSmtpMailerIntegrationTest extends IntegrationTestCase
 		$subject = sprintf('TEST SMTP %d', $time);
 
 		$message = $this->getMessage($subject);
-		$manager->send($message)->done(
+		$manager->send($message)->then(
 			function (): void {
 				$this->exception = false;
 			},

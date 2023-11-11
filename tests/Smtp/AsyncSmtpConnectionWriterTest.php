@@ -73,7 +73,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	{
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock(), $this->logger);
 		$writer->write(new AsyncSingleResponseMessage('AUTH LOGIN', [334]))
-			->done(
+			->then(
 				function (): void {
 					$this->exception = false;
 				},
@@ -90,7 +90,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	{
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock(), $this->logger);
 		$writer->write(new AsyncSingleResponseMessage('AUTH LOGIN', [334]))
-			->done(
+			->then(
 				function (): void {
 					$this->exception = false;
 				},
@@ -107,7 +107,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	{
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock(), $this->logger);
 		$writer->write(new AsyncSingleResponseMessage('AUTH LOGIN', [334]))
-			->done(
+			->then(
 				function (): void {
 					$this->exception = false;
 				},
@@ -180,7 +180,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	): void
 	{
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock($message->getText()), $this->logger);
-		$writer->write($message)->done(
+		$writer->write($message)->then(
 			function (): void {
 				$this->exception = false;
 			},
@@ -247,7 +247,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	{
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock($message->getText()), $this->logger);
 		$writer->write($message)
-			->done(
+			->then(
 				function (): void {
 					$this->exception = false;
 				},

@@ -7,7 +7,7 @@ use AsyncConnection\AsyncMessage;
 use AsyncConnection\AsyncMessageSender;
 use InvalidArgumentException;
 use Nette\Mail\Message;
-use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 use function array_keys;
 use function array_merge;
 use function key;
@@ -18,7 +18,7 @@ use function sprintf;
 class AsyncSmtpMessageSender implements AsyncMessageSender
 {
 
-	public function sendMessage(AsyncConnectionWriter $writer, AsyncMessage $message): ExtendedPromiseInterface
+	public function sendMessage(AsyncConnectionWriter $writer, AsyncMessage $message): PromiseInterface
 	{
 		if (!$message instanceof Message) {
 			throw new InvalidArgumentException('Only \Nette\Mail\Message is accepted');
@@ -36,7 +36,7 @@ class AsyncSmtpMessageSender implements AsyncMessageSender
 					(array) $message->getHeader('Bcc'),
 				);
 
-				$previousPromise = resolve();
+				$previousPromise = resolve(null);
 				foreach (array_keys($recipients, null, true) as $email) {
 					$previousPromise = $previousPromise->then(static function () use ($email, $writer) {
 						$message = sprintf('RCPT TO:<%s>', $email);

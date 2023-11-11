@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
-use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 use Throwable;
 use function React\Promise\reject;
 use function React\Promise\resolve;
@@ -41,7 +41,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 	public function testSuccessfulSendingReturnsPromise(): void
 	{
 		$this->writerMock->method('write')
-			->willReturn(resolve());
+			->willReturn(resolve(null));
 
 		$this->runSuccessfulSendingTest($this->createMessage());
 	}
@@ -66,7 +66,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 		$this->writerMock->method('write')
 			->willReturnCallback(static fn (AsyncMessage $message) => Strings::startsWith($message->getText(), $messageToFail)
 					? reject(new AsyncSmtpConnectionException('Sending failed'))
-					: resolve());
+					: resolve(null));
 
 		$assertOnFail = function (Throwable $exception): void {
 			$this->assertInstanceOf(AsyncSmtpConnectionException::class, $exception);
@@ -83,13 +83,13 @@ class AsyncSmtpMessageSenderTest extends TestCase
 	public function testMultipleRecipients(): void
 	{
 		$this->writerMock->method('write')
-			->will($this->returnCallback(function (AsyncMessage $message): ExtendedPromiseInterface {
+			->will($this->returnCallback(function (AsyncMessage $message): PromiseInterface {
 				$matches = Strings::match($message->getText(), '~RCPT TO:\s?\<(?<recipient>[^>]+)\>~i');
 				if ($matches !== null) {
 					$this->recipients[] = $matches['recipient'];
 				}
 
-				return resolve();
+				return resolve(null);
 			}));
 
 		$assertOnSuccess = function (): void {
@@ -117,7 +117,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 	{
 		$sender = new AsyncSmtpMessageSender();
 		$sender->sendMessage($this->writerMock, $message)
-			->done(
+			->then(
 				function (): void {
 					$this->setException(false);
 				},
@@ -137,7 +137,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 	{
 		$sender = new AsyncSmtpMessageSender();
 		$sender->sendMessage($this->writerMock, $message)
-			->done(
+			->then(
 				function (): void {
 					$this->setException(false);
 				},
