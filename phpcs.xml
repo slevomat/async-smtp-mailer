@@ -183,9 +183,6 @@
 					@phpcsSuppress,
 				"/>
 				<element value="
-					@dataProvider,
-				"/>
-				<element value="
 					@deprecated,
 					@internal,
 					@see,

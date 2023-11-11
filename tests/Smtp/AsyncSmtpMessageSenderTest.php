@@ -7,6 +7,7 @@ use AsyncConnection\AsyncTestTrait;
 use AsyncConnection\TestCase;
 use Closure;
 use Nette\Utils\Strings;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
@@ -45,7 +46,10 @@ class AsyncSmtpMessageSenderTest extends TestCase
 		$this->runSuccessfulSendingTest($this->createMessage());
 	}
 
-	public function dataFailedSendingThrowsException(): array
+	/**
+	 * @return list<array{0: string}>
+	 */
+	public static function dataFailedSendingThrowsException(): array
 	{
 		return [
 			['MAIL FROM:<test@slevomat.cz>'],
@@ -56,9 +60,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 		];
 	}
 
-	/**
-	 * @dataProvider dataFailedSendingThrowsException
-	 */
+	#[DataProvider('dataFailedSendingThrowsException')]
 	public function testFailedSendingThrowsException(string $messageToFail): void
 	{
 		$this->writerMock->method('write')
