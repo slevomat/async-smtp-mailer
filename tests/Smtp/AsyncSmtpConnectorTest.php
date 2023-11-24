@@ -3,6 +3,7 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
+use AsyncConnection\AsyncResult;
 use AsyncConnection\AsyncTestTrait;
 use AsyncConnection\TestCase;
 use Exception;
@@ -132,15 +133,15 @@ class AsyncSmtpConnectorTest extends TestCase
 				$passwordIsInvalid
 			): PromiseInterface {
 				if ($message->getText() === 'EHLO slevomat.cz') {
-					return reject(new AsyncSmtpConnectionException(''));
+					return resolve(AsyncResult::failure(new AsyncSmtpConnectionException('')));
 				}
 
 				if ($message->getText() === 'HELO slevomat.cz') {
 					$this->heloMessageWasSent = true;
 
 					return $greetingShouldFail
-						? reject(new AsyncSmtpConnectionException(self::INVALID_GREETING_MESSAGE))
-						: resolve(null);
+						? resolve(AsyncResult::failure(new AsyncSmtpConnectionException(self::INVALID_GREETING_MESSAGE)))
+						: resolve(AsyncResult::success());
 				}
 
 				if ($message->getText() === 'AUTH LOGIN') {
@@ -151,16 +152,16 @@ class AsyncSmtpConnectorTest extends TestCase
 						$this->usernameWasSent = true;
 
 						return $usernameIsInvalid
-							? reject(new AsyncSmtpConnectionException(self::INVALID_USERNAME_MESSAGE))
-							: resolve(null);
+							? resolve(AsyncResult::failure(new AsyncSmtpConnectionException(self::INVALID_USERNAME_MESSAGE)))
+							: resolve(AsyncResult::success());
 					}
 
 					return $passwordIsInvalid
-						? reject(new AsyncSmtpConnectionException(self::INVALID_PASSWORD_MESSAGE))
-						: resolve(null);
+						? resolve(AsyncResult::failure(new AsyncSmtpConnectionException(self::INVALID_PASSWORD_MESSAGE)))
+						: resolve(AsyncResult::success());
 				}
 
-				return resolve(null);
+				return resolve(AsyncResult::success());
 			});
 
 		return new AsyncSmtpConnector(

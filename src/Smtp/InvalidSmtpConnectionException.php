@@ -7,9 +7,9 @@ use AsyncConnection\AsyncConnectionException;
 class InvalidSmtpConnectionException extends AsyncConnectionException
 {
 
-	public function __construct()
+	public function __construct(string $message)
 	{
-		parent::__construct('SMTP connection stream is not readable or/and not writable.');
+		parent::__construct($message);
 	}
 
 }

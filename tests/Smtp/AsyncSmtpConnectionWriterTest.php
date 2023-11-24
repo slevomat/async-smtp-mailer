@@ -5,6 +5,7 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
+use AsyncConnection\AsyncResult;
 use AsyncConnection\AsyncTestTrait;
 use AsyncConnection\TestCase;
 use Closure;
@@ -69,13 +70,25 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		new AsyncSmtpConnectionWriter($connectionMock, $this->logger);
 	}
 
+	public function testFailedWriteThrowsException(): void
+	{
+		$this->expectException(InvalidSmtpConnectionException::class);
+		$this->expectExceptionMessage('Write failed.');
+
+		$connectionMock = $this->createConnectionMock();
+		$connectionMock->method('write')->willReturn(false);
+
+		$writer = new AsyncSmtpConnectionWriter($connectionMock, $this->logger);
+		$writer->write(new AsyncSingleResponseMessage('AUTH LOGIN', [334]));
+	}
+
 	public function testUnexpectedConnectionEndFromServer(): void
 	{
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock(), $this->logger);
 		$writer->write(new AsyncSingleResponseMessage('AUTH LOGIN', [334]))
 			->then(
-				function (): void {
-					$this->exception = false;
+				function (AsyncResult $result): void {
+					$this->exception = $result->isSuccess() ? false : $result->getError();
 				},
 				function (Throwable $exception): void {
 					$this->exception = $exception;
@@ -91,8 +104,8 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock(), $this->logger);
 		$writer->write(new AsyncSingleResponseMessage('AUTH LOGIN', [334]))
 			->then(
-				function (): void {
-					$this->exception = false;
+				function (AsyncResult $result): void {
+					$this->exception = $result->isSuccess() ? false : $result->getError();
 				},
 				function (Throwable $exception): void {
 					$this->exception = $exception;
@@ -108,8 +121,8 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock(), $this->logger);
 		$writer->write(new AsyncSingleResponseMessage('AUTH LOGIN', [334]))
 			->then(
-				function (): void {
-					$this->exception = false;
+				function (AsyncResult $result): void {
+					$this->exception = $result->isSuccess() ? false : $result->getError();
 				},
 				function (Throwable $exception): void {
 					$this->exception = $exception;
@@ -181,8 +194,8 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	{
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock($message->getText()), $this->logger);
 		$writer->write($message)->then(
-			function (): void {
-				$this->exception = false;
+			function (AsyncResult $result): void {
+				$this->exception = $result->isSuccess() ? false : $result->getError();
 			},
 			function (Throwable $exception): void {
 				$this->exception = $exception;
@@ -248,8 +261,8 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock($message->getText()), $this->logger);
 		$writer->write($message)
 			->then(
-				function (): void {
-					$this->exception = false;
+				function (AsyncResult $result): void {
+					$this->exception = $result->isSuccess() ? false : $result->getError();
 				},
 				function (Throwable $exception): void {
 					$this->exception = $exception;

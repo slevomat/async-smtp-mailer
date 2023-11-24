@@ -67,7 +67,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 	public function testSuccessfulSendingReturnsPromise(): void
 	{
 		$this->connectionManagerMock->method('connect')
-			->willReturn(resolve(new AsyncConnectionResult($this->writerMock, true)));
+			->willReturn(resolve(AsyncConnectionResult::success($this->writerMock, true)));
 
 		$this->senderMock->method('sendMessage')
 			->willReturn(resolve(null));
@@ -78,7 +78,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 	public function testFailedSendingWithExpectedError(): void
 	{
 		$this->connectionManagerMock->method('connect')
-			->willReturn(resolve(new AsyncConnectionResult($this->writerMock, true)));
+			->willReturn(resolve(AsyncConnectionResult::success($this->writerMock, true)));
 
 		$this->senderMock->method('sendMessage')
 			->willReturn(reject(new AsyncConnectionException('Sending failed')));
@@ -99,7 +99,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 	public function testFailedSendingWithUnexpectedError(): void
 	{
 		$this->connectionManagerMock->method('connect')
-			->willReturn(resolve(new AsyncConnectionResult($this->writerMock, true)));
+			->willReturn(resolve(AsyncConnectionResult::success($this->writerMock, true)));
 
 		$this->senderMock->method('sendMessage')
 			->willReturn(reject(new Exception('Unexpected error')));
@@ -119,7 +119,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 	public function testFailedConnectionWithUnexpectedError(): void
 	{
 		$this->connectionManagerMock->method('connect')
-			->willReturn(reject(new Exception('Unexpected error')));
+			->willThrowException(new Exception('Unexpected error'));
 
 		$this->senderMock->method('sendMessage')
 			->willReturn(resolve(null));
@@ -139,7 +139,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 	public function testFailedConnectionWithExpectedError(): void
 	{
 		$this->connectionManagerMock->method('connect')
-			->willReturn(reject(new AsyncConnectionException('Connection failed')));
+			->willReturn(resolve(AsyncConnectionResult::failure(new AsyncConnectionException('Connection failed'))));
 
 		$this->senderMock->method('sendMessage')
 			->willReturn(resolve(null));
@@ -163,11 +163,11 @@ class AsyncMessageQueueManagerTest extends TestCase
 			->willReturnCallback(function (): PromiseInterface {
 				$this->connectsCount++;
 
-				return resolve(new AsyncConnectionResult($this->writerMock, $this->connectsCount === 1));
+				return resolve(AsyncConnectionResult::success($this->writerMock, $this->connectsCount === 1));
 			});
 
 		$this->senderMock->method('sendMessage')
-			->will($this->returnCallback(
+			->willReturnCallback(
 				function (): PromiseInterface {
 					$deferred = new Deferred();
 
@@ -177,7 +177,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 
 					return $deferred->promise();
 				},
-			));
+			);
 
 		$this->exceptions = [];
 
@@ -186,10 +186,9 @@ class AsyncMessageQueueManagerTest extends TestCase
 			function (): void {
 				$this->exceptions['first'] = false;
 			},
-			function (Throwable $e): void {
-				$this->exceptions['first'] = $e;
-			},
-		);
+		)->catch(function (Throwable $e): void {
+			$this->exceptions['first'] = $e;
+		});
 
 		$this->assertSame(1, $manager->getQueuedMessagesCount(), 'Unexpected queued messages count.');
 		$this->assertSame(0, $manager->getSentMessagesCount(), 'Unexpected sent messages count');
@@ -250,7 +249,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 	public function testSendingWhenPreviousRequestSucceeded(): void
 	{
 		$this->connectionManagerMock->method('connect')
-			->willReturn(resolve(new AsyncConnectionResult($this->writerMock, true)));
+			->willReturn(resolve(AsyncConnectionResult::success($this->writerMock, true)));
 
 		$this->senderMock->method('sendMessage')
 			->willReturn(resolve(null));
@@ -261,20 +260,18 @@ class AsyncMessageQueueManagerTest extends TestCase
 			->then(
 				static function (): void {
 				},
-				function (Throwable $e): void {
-					$this->setException($e);
-				},
-			);
+			)->catch(function (Throwable $exception): void {
+				$this->setException($exception);
+			});
 
 		$manager->send(new SimpleAsyncMessage('message'))
 			->then(
 				function (): void {
 					$this->setException(false);
 				},
-				function (Throwable $e): void {
-					$this->setException($e);
-				},
-			);
+			)->catch(function (Throwable $exception): void {
+				$this->setException($exception);
+			});
 
 		$this->runSuccessfulTest($this->loop);
 	}
@@ -287,12 +284,12 @@ class AsyncMessageQueueManagerTest extends TestCase
 		$this->connectionManagerMock->method('connect')
 			->willReturnCallback(function (): PromiseInterface {
 				if (count($this->exceptions) === 0) {
-					return reject(new Exception('Unexpected error'));
+					return resolve(AsyncConnectionResult::failure(new Exception('Unexpected error')));
 				}
 
 				$this->connectsCount++;
 
-				return resolve(new AsyncConnectionResult($this->writerMock, true));
+				return resolve(AsyncConnectionResult::success($this->writerMock, true));
 			});
 
 		$this->senderMock->method('sendMessage')
@@ -314,11 +311,11 @@ class AsyncMessageQueueManagerTest extends TestCase
 			->willReturnCallback(function (): PromiseInterface {
 				$this->connectsCount++;
 
-				return resolve(new AsyncConnectionResult($this->writerMock, $this->connectsCount === 1));
+				return resolve(AsyncConnectionResult::success($this->writerMock, $this->connectsCount === 1));
 			});
 
 		$this->connectionManagerMock->method('disconnect')
-			->willReturn(resolve(null));
+			->willReturn(resolve(AsyncDisconnectionResult::success()));
 
 		$this->senderMock->method('sendMessage')
 			->willReturnCallback(fn (): PromiseInterface => $this->connectsCount === 1
@@ -366,10 +363,9 @@ class AsyncMessageQueueManagerTest extends TestCase
 				function (): void {
 					$this->setException(false);
 				},
-				function (Throwable $exception): void {
-					$this->setException($exception);
-				},
-			);
+			)->catch(function (Throwable $exception): void {
+				$this->setException($exception);
+			});
 
 		$this->runSuccessfulTest($this->loop, $assertOnSuccess);
 	}
@@ -386,10 +382,9 @@ class AsyncMessageQueueManagerTest extends TestCase
 				function (): void {
 					$this->setException(false);
 				},
-				function (Throwable $exception): void {
-					$this->setException($exception);
-				},
-			);
+			)->catch(function (Throwable $exception): void {
+				$this->setException($exception);
+			});
 
 		$this->runFailedTest($this->loop, $assertOnFail, $errorMessage);
 	}
@@ -405,15 +400,15 @@ class AsyncMessageQueueManagerTest extends TestCase
 		$this->connectionManagerMock
 			->method('connect')
 			// intentionally setting $connectionRequest = false (otherwise sentMessagesCounter will be reset)
-			->willReturn(resolve(new AsyncConnectionResult($this->writerMock, false)));
+			->willReturn(resolve(AsyncConnectionResult::success($this->writerMock, false)));
 
 		$this->connectionManagerMock
 			->method('disconnect')
-			->will($this->returnCallback(function () {
+			->willReturnCallback(function () {
 				$this->disconnectsCount++;
 
 				return resolve(null);
-			}));
+			});
 
 		$this->disconnectsCount = 0;
 		$this->connectsCount = 0;
@@ -444,10 +439,9 @@ class AsyncMessageQueueManagerTest extends TestCase
 						$this->setException($e);
 					}
 				},
-				function (Throwable $e): void {
-					$this->setException($e);
-				},
-			);
+			)->catch(function (Throwable $exception): void {
+				$this->setException($exception);
+			});
 
 		$asserts = function () use ($manager): void {
 			$this->assertSame(1, $this->disconnectsCount, 'Unexpected total disconnects count.');
@@ -465,20 +459,18 @@ class AsyncMessageQueueManagerTest extends TestCase
 				function (): void {
 					$this->exceptions['first'] = false;
 				},
-				function (Throwable $e): void {
-					$this->exceptions['first'] = $e;
-				},
-			);
+			)->catch(function (Throwable $e): void {
+				$this->exceptions['first'] = $e;
+			});
 
 		$manager->send(new SimpleAsyncMessage('message'))
 			->then(
 				function (): void {
 					$this->exceptions['second'] = false;
 				},
-				function (Throwable $e): void {
-					$this->exceptions['second'] = $e;
-				},
-			);
+			)->catch(function (Throwable $e): void {
+				$this->exceptions['second'] = $e;
+			});
 
 		$startTime = time();
 		$this->loop->addPeriodicTimer($this->getTimerInterval(), function () use ($startTime, $asserts, $manager): void {

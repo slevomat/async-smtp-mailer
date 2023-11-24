@@ -2,27 +2,48 @@
 
 namespace AsyncConnection;
 
+use Throwable;
+
 class AsyncConnectionResult
 {
 
-	private AsyncConnectionWriter $asyncConnectionWriter;
-
-	private bool $connectionRequest; // false = already existing connection returned
-
-	public function __construct(AsyncConnectionWriter $asyncConnectionWriter, bool $connectionRequest)
+	private function __construct(
+		private bool $isSuccess,
+		private ?AsyncConnectionWriter $asyncConnectionWriter = null,
+		private ?bool $connectionRequest = null, // false = already existing connection returned
+		private ?Throwable $error = null
+	)
 	{
-		$this->asyncConnectionWriter = $asyncConnectionWriter;
-		$this->connectionRequest = $connectionRequest;
 	}
 
-	public function getWriter(): AsyncConnectionWriter
+	public static function success(AsyncConnectionWriter $writer, ?bool $connectionRequest = null): self
+	{
+		return new self(true, $writer, $connectionRequest);
+	}
+
+	public static function failure(Throwable $error): self
+	{
+		return new self(false, null, null, $error);
+	}
+
+	public function isConnected(): bool
+	{
+		return $this->isSuccess;
+	}
+
+	public function getWriter(): ?AsyncConnectionWriter
 	{
 		return $this->asyncConnectionWriter;
 	}
 
-	public function hasConnectedToServer(): bool
+	public function newServerRequestWasSent(): ?bool
 	{
-		return $this->connectionRequest;
+		return $this->connectionRequest === true;
+	}
+
+	public function getError(): ?Throwable
+	{
+		return $this->error;
 	}
 
 }

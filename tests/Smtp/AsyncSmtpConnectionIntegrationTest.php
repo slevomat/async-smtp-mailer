@@ -6,6 +6,7 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncConnectionException;
 use AsyncConnection\AsyncConnectionManager;
+use AsyncConnection\AsyncConnectionResult;
 use AsyncConnection\AsyncTestTrait;
 use AsyncConnection\Connector\ConnectorFactory;
 use AsyncConnection\IntegrationTestCase;
@@ -99,11 +100,12 @@ class AsyncSmtpConnectionIntegrationTest extends IntegrationTestCase
 		$connection->connect()->then(
 			function () use ($connection): void {
 				$connection->connect()->then(
-					function (): void {
-						$this->setException(false);
-					},
-					function (Throwable $e): void {
-						$this->setException($e);
+					function (AsyncConnectionResult $result): void {
+						if ($result->isConnected()) {
+							$this->setException(false);
+						} else {
+							$this->setException($result->getError());
+						}
 					},
 				);
 			},
@@ -119,11 +121,12 @@ class AsyncSmtpConnectionIntegrationTest extends IntegrationTestCase
 	{
 		$connection = $this->createConnectionManager($settings);
 		$connection->connect()->then(
-			function (): void {
-				$this->setException(false);
-			},
-			function (Throwable $e): void {
-				$this->setException($e);
+			function (AsyncConnectionResult $result): void {
+				if ($result->isConnected()) {
+					$this->setException(false);
+				} else {
+					$this->setException($result->getError());
+				}
 			},
 		);
 
@@ -138,11 +141,12 @@ class AsyncSmtpConnectionIntegrationTest extends IntegrationTestCase
 	{
 		$connection = $this->createConnectionManager($settings);
 		$connection->connect()->then(
-			function (): void {
-				$this->setException(false);
-			},
-			function (Throwable $e): void {
-				$this->setException($e);
+			function (AsyncConnectionResult $result): void {
+				if ($result->isConnected()) {
+					$this->setException(false);
+				} else {
+					$this->setException($result->getError());
+				}
 			},
 		);
 

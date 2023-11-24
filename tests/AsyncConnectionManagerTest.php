@@ -35,11 +35,12 @@ class AsyncConnectionManagerTest extends TestCase
 		$connectorMock = $this->getConnector();
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			function (): void {
-				$this->setException(false);
-			},
-			function (Throwable $exception): void {
-				$this->setException($exception);
+			function (AsyncConnectionResult $result): void {
+				if ($result->isConnected()) {
+					$this->setException(false);
+				} else {
+					$this->setException($result->getError());
+				}
 			},
 		);
 
@@ -53,16 +54,17 @@ class AsyncConnectionManagerTest extends TestCase
 		$manager->connect()->then(
 			function () use ($manager): void {
 				$manager->connect()->then(
-					function (): void {
-						try {
-							$this->setException(false);
+					function (AsyncConnectionResult $result): void {
+						if ($result->isConnected()) {
+							try {
+								$this->setException(false);
 
-						} catch (Throwable $e) {
-							$this->setException($e);
+							} catch (Throwable $e) {
+								$this->setException($e);
+							}
+						} else {
+							$this->setException($result->getError());
 						}
-					},
-					function (Throwable $e): void {
-						$this->setException($e);
 					},
 				);
 			},
@@ -88,11 +90,12 @@ class AsyncConnectionManagerTest extends TestCase
 			function () use ($manager): void {
 				$this->streamIsValid = false;
 				$manager->connect()->then(
-					function (): void {
-						$this->setException(false);
-					},
-					function (Throwable $e): void {
-						$this->setException($e);
+					function (AsyncConnectionResult $result): void {
+						if ($result->isConnected()) {
+							$this->setException(false);
+						} else {
+							$this->setException($result->getError());
+						}
 					},
 				);
 			},
@@ -109,19 +112,20 @@ class AsyncConnectionManagerTest extends TestCase
 		$connectorMock = $this->getConnector(1, 0, 2);
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			static function (): void {
-			},
-			function (Throwable $e): void {
-				$this->setException($e);
+			function (AsyncConnectionResult $result): void {
+				if (!$result->isConnected()) {
+					$this->setException($result->getError());
+				}
 			},
 		);
 
 		$manager->connect()->then(
-			function (): void {
-				$this->setException(false);
-			},
-			function (Throwable $e): void {
-				$this->setException($e);
+			function (AsyncConnectionResult $result): void {
+				if ($result->isConnected()) {
+					$this->setException(false);
+				} else {
+					$this->setException($result->getError());
+				}
 			},
 		);
 
@@ -135,19 +139,20 @@ class AsyncConnectionManagerTest extends TestCase
 		$manager->connect()->then(
 			function () use ($manager): void {
 				$manager->disconnect()->then(
-					static function (): void {
-					},
-					function (Throwable $e): void {
-						$this->setException($e);
+					function (AsyncDisconnectionResult $result): void {
+						if (!$result->isDisconnected()) {
+							$this->setException($result->getError());
+						}
 					},
 				);
 
 				$manager->connect()->then(
-					function (): void {
-						$this->setException(false);
-					},
-					function (Throwable $e): void {
-						$this->setException($e);
+					function (AsyncConnectionResult $result): void {
+						if ($result->isConnected()) {
+							$this->setException(false);
+						} else {
+							$this->setException($result->getError());
+						}
 					},
 				);
 			},
@@ -164,18 +169,20 @@ class AsyncConnectionManagerTest extends TestCase
 		$connectorMock = $this->getConnector(1, 1);
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			function () use ($manager): void {
-				$manager->disconnect()->then(
-					function (): void {
-						$this->setException(false);
-					},
-					function (Throwable $e): void {
-						$this->setException($e);
-					},
-				);
-			},
-			function (Throwable $exception): void {
-				$this->setException($exception);
+			function (AsyncConnectionResult $result) use ($manager): void {
+				if ($result->isConnected()) {
+					$manager->disconnect()->then(
+						function (AsyncDisconnectionResult $result): void {
+							if ($result->isDisconnected()) {
+								$this->setException(false);
+							} else {
+								$this->setException($result->getError());
+							}
+						},
+					);
+				} else {
+					$this->setException($result->getError());
+				}
 			},
 		);
 
@@ -187,12 +194,11 @@ class AsyncConnectionManagerTest extends TestCase
 		$connectorMock = $this->getConnector(0, 0);
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->disconnect()->then(
-			function ($message): void {
-				try {
-					$this->assertSame('Not connected.', $message);
+			function (AsyncDisconnectionResult $result): void {
+				if ($result->isDisconnected()) {
 					$this->setException(false);
-				} catch (Throwable $e) {
-					$this->setException($e);
+				} else {
+					$this->setException($result->getError());
 				}
 			},
 			function (Throwable $e): void {
@@ -208,19 +214,20 @@ class AsyncConnectionManagerTest extends TestCase
 		$connectorMock = $this->getConnector(1, 1, 2);
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			static function (): void {
-			},
-			function (Throwable $e): void {
-				$this->setException($e);
+			function (AsyncConnectionResult $result): void {
+				if (!$result->isConnected()) {
+					$this->setException($result->getError());
+				}
 			},
 		);
 
 		$manager->disconnect()->then(
-			function (): void {
-				$this->setException(false);
-			},
-			function (Throwable $e): void {
-				$this->setException($e);
+			function (AsyncDisconnectionResult $result): void {
+				if ($result->isDisconnected()) {
+					$this->setException(false);
+				} else {
+					$this->setException($result->getError());
+				}
 			},
 		);
 
@@ -232,33 +239,37 @@ class AsyncConnectionManagerTest extends TestCase
 		$connectorMock = $this->getConnector(1, 1, 0, 2);
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			function () use ($manager): void {
-				$manager->disconnect()->then(
-					static function (): void {
-					},
-					function (Throwable $e): void {
-						$this->setException($e);
-					},
-				);
+			function (AsyncConnectionResult $result) use ($manager): void {
+				if ($result->isConnected()) {
+					$manager->disconnect()->then(
+						function (AsyncDisconnectionResult $result): void {
+							if ($result->isDisconnected()) {
+								$this->setException(false);
+							} else {
+								$this->setException($result->getError());
+							}
+						},
+					);
 
-				$manager->disconnect()->then(
-					function (): void {
-						$this->setException(false);
-					},
-					function (Throwable $e): void {
-						$this->setException($e);
-					},
-				);
-			},
-			function (Throwable $e): void {
-				$this->setException($e);
+					$manager->disconnect()->then(
+						function (AsyncDisconnectionResult $result): void {
+							if ($result->isDisconnected()) {
+								$this->setException(false);
+							} else {
+								$this->setException($result->getError());
+							}
+						},
+					);
+				} else {
+					$this->setException($e);
+				}
 			},
 		);
 
 		$this->runSuccessfulTest($this->loop);
 	}
 
-	public function testConnectionFailureReturnsRejectedPromise(): void
+	public function testConnectionFailureReturnValue(): void
 	{
 		$connectorMock = $this->createMock(AsyncConnector::class);
 		$connectorMock->method('connect')
@@ -266,11 +277,12 @@ class AsyncConnectionManagerTest extends TestCase
 
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			function (): void {
-				$this->setException(false);
-			},
-			function (Throwable $e): void {
-				$this->setException($e);
+			function (AsyncConnectionResult $result): void {
+				if ($result->isConnected()) {
+					$this->setException(false);
+				} else {
+					$this->setException($result->getError());
+				}
 			},
 		);
 
@@ -287,11 +299,12 @@ class AsyncConnectionManagerTest extends TestCase
 
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			function (): void {
-				$this->setException(false);
-			},
-			function (Throwable $e): void {
-				$this->setException($e);
+			function (AsyncConnectionResult $result): void {
+				if ($result->isConnected()) {
+					$this->setException(false);
+				} else {
+					$this->setException($result->getError());
+				}
 			},
 		);
 
@@ -301,7 +314,7 @@ class AsyncConnectionManagerTest extends TestCase
 		});
 	}
 
-	public function testDisconnectFailureReturnsRejectedPromise(): void
+	public function testDisconnectFailure(): void
 	{
 		$writerMock = $this->createMock(AsyncConnectionWriter::class);
 		$writerMock->method('isValid')->willReturn(true);
@@ -315,15 +328,18 @@ class AsyncConnectionManagerTest extends TestCase
 
 		$manager = $this->getConnectionManager($connectorMock);
 		$manager->connect()->then(
-			function () use ($manager): void {
-				$manager->disconnect()->then(
-					function (): void {
-						$this->setException(false);
-					},
-					function (Throwable $e): void {
-						$this->setException($e);
-					},
-				);
+			function (AsyncConnectionResult $result) use ($manager): void {
+				if ($result->isConnected()) {
+					$manager->disconnect()->then(
+						function (AsyncDisconnectionResult $result): void {
+							if ($result->isDisconnected()) {
+								$this->setException(false);
+							} else {
+								$this->setException($result->getError());
+							}
+						},
+					);
+				}
 			},
 		);
 

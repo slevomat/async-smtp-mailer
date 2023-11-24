@@ -7,6 +7,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use React\EventLoop\LoopInterface;
 use Throwable;
+use function dump;
 use function sprintf;
 use function time;
 

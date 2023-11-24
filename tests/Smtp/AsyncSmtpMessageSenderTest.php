@@ -3,6 +3,7 @@
 namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncMessage;
+use AsyncConnection\AsyncResult;
 use AsyncConnection\AsyncTestTrait;
 use AsyncConnection\TestCase;
 use Closure;
@@ -13,7 +14,6 @@ use React\EventLoop\Factory;
 use React\EventLoop\LoopInterface;
 use React\Promise\PromiseInterface;
 use Throwable;
-use function React\Promise\reject;
 use function React\Promise\resolve;
 
 class AsyncSmtpMessageSenderTest extends TestCase
@@ -41,7 +41,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 	public function testSuccessfulSendingReturnsPromise(): void
 	{
 		$this->writerMock->method('write')
-			->willReturn(resolve(null));
+			->willReturn(resolve(AsyncResult::success()));
 
 		$this->runSuccessfulSendingTest($this->createMessage());
 	}
@@ -65,8 +65,8 @@ class AsyncSmtpMessageSenderTest extends TestCase
 	{
 		$this->writerMock->method('write')
 			->willReturnCallback(static fn (AsyncMessage $message) => Strings::startsWith($message->getText(), $messageToFail)
-					? reject(new AsyncSmtpConnectionException('Sending failed'))
-					: resolve(null));
+					? resolve(AsyncResult::failure(new AsyncSmtpConnectionException('Sending failed')))
+					: resolve(AsyncResult::success()));
 
 		$assertOnFail = function (Throwable $exception): void {
 			$this->assertInstanceOf(AsyncSmtpConnectionException::class, $exception);
@@ -83,14 +83,14 @@ class AsyncSmtpMessageSenderTest extends TestCase
 	public function testMultipleRecipients(): void
 	{
 		$this->writerMock->method('write')
-			->will($this->returnCallback(function (AsyncMessage $message): PromiseInterface {
+			->willReturnCallback(function (AsyncMessage $message): PromiseInterface {
 				$matches = Strings::match($message->getText(), '~RCPT TO:\s?\<(?<recipient>[^>]+)\>~i');
 				if ($matches !== null) {
 					$this->recipients[] = $matches['recipient'];
 				}
 
-				return resolve(null);
-			}));
+				return resolve(AsyncResult::success());
+			});
 
 		$assertOnSuccess = function (): void {
 			$this->assertCount(6, $this->recipients);

@@ -4,7 +4,7 @@ namespace AsyncConnection\Smtp;
 
 use AsyncConnection\AsyncConnectionWriter;
 use AsyncConnection\AsyncMessage;
-use Nette\Mail\Message;
+use AsyncConnection\AsyncResult;
 use Psr\Log\LoggerInterface;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
@@ -15,13 +15,14 @@ use function count;
 use function implode;
 use function in_array;
 use function preg_match;
-use function React\Promise\reject;
 use function React\Promise\resolve;
 use function sprintf;
 use function trim;
 
 class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 {
+
+	private const EOL = "\r\n";
 
 	/** @var array<array<mixed>> */
 	private array $expectedResponses = [];
@@ -38,7 +39,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 	)
 	{
 		if (!$connection->isReadable() || !$connection->isWritable()) {
-			throw new InvalidSmtpConnectionException();
+			throw new InvalidSmtpConnectionException('SMTP connection stream is not readable or/and not writable.');
 		}
 
 		$connection->on('data', function ($data): void {
@@ -73,7 +74,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 		if (!$this->isValid()) {
 			$this->logger->error('stream not valid');
 
-			return reject(new InvalidSmtpConnectionException());
+			throw new InvalidSmtpConnectionException('Stream is not valid.');
 		}
 
 		if ($message instanceof AsyncDoubleResponseMessage) {
@@ -92,14 +93,21 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 				$message->getTextReplacement(),
 			];
 
-			$this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+			$result = $this->connection->write(sprintf('%s%s', $message->getText(), self::EOL));
+			if ($result === false) {
+				throw new InvalidSmtpConnectionException('Write failed.');
+			}
 
 			return $firstResponse->promise()
-				->then(static fn () => $secondResponse->promise());
+				->then(static fn (AsyncResult $result) => $result->isSuccess() ? $secondResponse->promise() : resolve($result))
+				->catch(static fn (Throwable $e) => resolve(AsyncResult::failure($e)));
 		}
 
 		$deferred = new Deferred();
-		$this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+		$result = $this->connection->write(sprintf('%s%s', $message->getText(), self::EOL));
+		if ($result === false) {
+			throw new InvalidSmtpConnectionException('Write failed.');
+		}
 
 		if ($message instanceof AsyncSingleResponseMessage) {
 			$this->expectedResponses[] = [
@@ -110,7 +118,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 			];
 
 		} else {
-			$deferred->resolve(null);
+			$deferred->resolve(AsyncResult::success());
 		}
 
 		return $deferred->promise();
@@ -130,13 +138,14 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 
 		if (preg_match('~^[\d]{3}$~i', $data) !== 1
 			&& preg_match('~^[\d]{3}[^\d]+~i', $data) !== 1) {
-			$deferred->reject(new AsyncSmtpConnectionException(sprintf('Unexpected response format: %s.', $data)));
+			$exception = new AsyncSmtpConnectionException(sprintf('Unexpected response format: %s.', $data));
+			$deferred->resolve(AsyncResult::failure($exception));
 		}
 
 		$code = (int) $data;
 		if (in_array($code, $expectedCodes, true)) {
 			$this->logger->debug('code OK');
-			$deferred->resolve(null);
+			$deferred->resolve(AsyncResult::success());
 
 		} else {
 			$this->logger->debug('code WRONG');
@@ -154,10 +163,10 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 				? new TooManyMessagesException($errorMessage)
 				: new AsyncSmtpConnectionException($errorMessage);
 
-			$deferred->reject($exception);
+			$deferred->resolve(AsyncResult::failure($exception));
 		}
 
-		$this->dataProcessingPromise->resolve(null);
+		$this->dataProcessingPromise->resolve(AsyncResult::success());
 		$this->dataProcessingPromise = null;
 	}
 
@@ -172,7 +181,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 			return;
 		}
 
-		$dataProcessingPromise = $this->dataProcessingPromise !== null ? $this->dataProcessingPromise->promise() : resolve(null);
+		$dataProcessingPromise = $this->dataProcessingPromise !== null ? $this->dataProcessingPromise->promise() : resolve(AsyncResult::success());
 		$dataProcessingPromise->then(function () use ($exceptionMessage, $previousException): void {
 			if (count($this->expectedResponses) <= 0) {
 				return;
@@ -184,7 +193,8 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 					continue;
 				}
 
-				$deferred->reject(new AsyncSmtpConnectionException($exceptionMessage, 0, $previousException));
+				$exception = new AsyncSmtpConnectionException($exceptionMessage, 0, $previousException);
+				$deferred->resolve(AsyncResult::failure($exception));
 			}
 		});
 	}
