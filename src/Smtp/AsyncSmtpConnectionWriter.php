@@ -38,7 +38,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 	)
 	{
 		if (!$connection->isReadable() || !$connection->isWritable()) {
-			throw new InvalidSmtpConnectionException();
+			throw new InvalidSmtpConnectionException('SMTP connection stream is not readable or/and not writable.');
 		}
 
 		$connection->on('data', function ($data): void {
@@ -73,7 +73,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 		if (!$this->isValid()) {
 			$this->logger->error('stream not valid');
 
-			return reject(new InvalidSmtpConnectionException());
+			return reject(new InvalidSmtpConnectionException('SMTP connection stream is not readable or/and not writable.'));
 		}
 
 		if ($message instanceof AsyncDoubleResponseMessage) {
@@ -92,14 +92,22 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 				$message->getTextReplacement(),
 			];
 
-			$this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+			$result = $this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+			if ($result === false) {
+				throw new InvalidSmtpConnectionException('Write failed.');
+			}
 
 			return $firstResponse->promise()
-				->then(static fn () => $secondResponse->promise());
+				->then(static fn () => $secondResponse->promise())
+				->catch(static fn (Throwable $e) => reject($e),
+				);
 		}
 
 		$deferred = new Deferred();
-		$this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+		$result = $this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+		if ($result === false) {
+			throw new InvalidSmtpConnectionException('Write failed.');
+		}
 
 		if ($message instanceof AsyncSingleResponseMessage) {
 			$this->expectedResponses[] = [
@@ -127,6 +135,10 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 		}
 
 		[$deferred, $expectedCodes, $message, $messageToReplace] = array_shift($this->expectedResponses);
+
+		// preventing falsely positive 'Unhandled promise rejection'
+		$deferred->promise()->catch(static function (): void {
+		});
 
 		if (preg_match('~^[\d]{3}$~i', $data) !== 1
 			&& preg_match('~^[\d]{3}[^\d]+~i', $data) !== 1) {
@@ -183,6 +195,10 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 				if ($deferred === null) {
 					continue;
 				}
+
+				// preventing falsely positive 'Unhandled promise rejection'
+				$deferred->promise()->catch(static function (): void {
+				});
 
 				$deferred->reject(new AsyncSmtpConnectionException($exceptionMessage, 0, $previousException));
 			}

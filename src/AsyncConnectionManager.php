@@ -7,6 +7,7 @@ use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
 use React\Promise\Timer\TimeoutException;
 use Throwable;
+use function React\Promise\reject;
 use function React\Promise\resolve;
 
 class AsyncConnectionManager
@@ -75,19 +76,23 @@ class AsyncConnectionManager
 
 					return resolve(new AsyncConnectionResult($writer, true));
 				},
-				function (Throwable $e): void {
-					$this->logger->error('Connecting failed');
-					$this->connectionPromise->reject($e);
-					$this->connectionPromise = null;
+			)->catch(function (Throwable $e): PromiseInterface {
+				$this->logger->error('Connecting failed');
 
-					if ($e instanceof TimeoutException) {
-						throw new AsyncConnectionTimeoutException($e->getMessage(), $e->getCode(), $e);
-					}
+				// preventing falsely positive 'Unhandled promise rejection'
+				$this->connectionPromise->promise()->catch(static function (): void {
+				});
 
-					throw $e;
-				},
-			);
-		}, $doAfterFailedDisconnect);
+				$this->connectionPromise->reject($e);
+				$this->connectionPromise = null;
+
+				if ($e instanceof TimeoutException) {
+					return reject(new AsyncConnectionTimeoutException($e->getMessage(), $e->getCode(), $e));
+				}
+
+				return reject($e);
+			});
+		}, $doAfterFailedDisconnect)->catch(static fn (Throwable $e) => reject($e));
 	}
 
 	public function disconnect(): PromiseInterface
@@ -127,6 +132,11 @@ class AsyncConnectionManager
 					return resolve($value);
 				}, function (Throwable $e): void {
 					$this->logger->debug('Disconnection failed');
+
+					// preventing falsely positive 'Unhandled promise rejection'
+					$this->disconnectionPromise->promise()->catch(static function (): void {
+					});
+
 					$this->disconnectionPromise->reject($e);
 					$this->disconnectionPromise = null;
 
