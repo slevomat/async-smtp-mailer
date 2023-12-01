@@ -7,7 +7,9 @@ use AsyncConnection\AsyncConnector;
 use React\Promise\PromiseInterface;
 use React\Socket\ConnectionInterface;
 use React\Socket\ConnectorInterface;
+use Throwable;
 use function base64_encode;
+use function React\Promise\reject;
 use function React\Promise\resolve;
 use function sprintf;
 
@@ -38,7 +40,8 @@ class AsyncSmtpConnector implements AsyncConnector
 				$writer = $this->asyncSmtpWriterFactory->create($connection);
 
 				return $this->greetServer($writer);
-			})->then(fn ($writer) => $this->loginToServer($writer))->then(static fn ($writer) => resolve($writer));
+			})->then(fn ($writer) => $this->loginToServer($writer))->then(static fn ($writer) => resolve($writer))
+			->catch(static fn (Throwable $e) => reject($e));
 	}
 
 	public function disconnect(AsyncConnectionWriter $writer): PromiseInterface
@@ -52,7 +55,7 @@ class AsyncSmtpConnector implements AsyncConnector
 		$ehloMessage = new AsyncDoubleResponseMessage(sprintf('EHLO %s', $self), [SmtpCode::SERVICE_READY], [SmtpCode::OK]);
 
 		return $writer->write($ehloMessage)
-			->otherwise(static function (AsyncSmtpConnectionException $e) use ($self, $writer) {
+			->catch(static function (AsyncSmtpConnectionException $e) use ($self, $writer) {
 				$heloMessage = new AsyncDoubleResponseMessage(sprintf('HELO %s', $self), [SmtpCode::SERVICE_READY], [SmtpCode::OK]);
 
 				return $writer->write($heloMessage);

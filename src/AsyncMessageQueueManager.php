@@ -10,6 +10,7 @@ use Throwable;
 use function array_slice;
 use function array_values;
 use function count;
+use function React\Promise\reject;
 use function React\Promise\resolve;
 use function sprintf;
 use function time;
@@ -125,11 +126,11 @@ class AsyncMessageQueueManager
 
 				return $this->minIntervalPromise->then(static fn () => resolve($result));
 			},
-			function (Throwable $exception) use ($requestsCounter): void {
+			function (Throwable $exception) use ($requestsCounter): PromiseInterface {
 				$this->log('connection failed', $requestsCounter);
 				$this->finishWithError($exception, $requestsCounter);
 
-				throw $exception;
+				return reject($exception);
 			},
 		)->then(
 			fn (AsyncConnectionResult $result) => $this->asyncMessageSender->sendMessage($result->getWriter(), $message)->then(static fn () => resolve($result)),
@@ -144,14 +145,14 @@ class AsyncMessageQueueManager
 				$this->lastSentMessageTime = time();
 				$this->finishWithSuccess($requestsCounter);
 			},
-			function (Throwable $exception) use ($requestsCounter): void {
+			function (Throwable $exception) use ($requestsCounter): PromiseInterface {
 				$this->log('sending failed', $requestsCounter);
 				$this->forceReconnect = true;
 				$this->finishWithError($exception, $requestsCounter);
 
-				throw $exception;
+				return reject($exception);
 			},
-		);
+		)->catch(static fn (Throwable $e) => reject($e));
 	}
 
 	public function getQueuedMessagesCount(): int
