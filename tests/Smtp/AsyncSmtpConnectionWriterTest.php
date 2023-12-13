@@ -61,6 +61,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	public function testInvalidStreamThrowsException(): void
 	{
 		$this->expectException(InvalidSmtpConnectionException::class);
+		$this->expectExceptionMessage('SMTP connection stream is not readable or/and not writable.');
 
 		$connectionMock = $this->createMock(ConnectionInterface::class);
 		$connectionMock->method('isReadable')->willReturn(false);
