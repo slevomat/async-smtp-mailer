@@ -84,7 +84,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 			);
 
 		($this->doOnEnd)();
-		$this->runFailedTest(null, null, 'SMTP server unexpectedly ended connection.');
+		$this->runFailedTest(null, null, 'SMTP server unexpectedly ended connection. Original message: "AUTH LOGIN"');
 	}
 
 	public function testUnexpectedConnectionClosedByServer(): void
@@ -101,7 +101,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 			);
 
 		($this->doOnClose)();
-		$this->runFailedTest(null, null, 'SMTP server unexpectedly closed connection.');
+		$this->runFailedTest(null, null, 'SMTP server unexpectedly closed connection. Original message: "AUTH LOGIN"');
 	}
 
 	public function testConnectionErrorFromServer(): void
@@ -121,7 +121,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		$this->runFailedTest(
 			null,
 			null,
-			'SMTP server connection error.',
+			'SMTP server connection error. Original message: "AUTH LOGIN"',
 			'Something horrible happened!',
 		);
 	}

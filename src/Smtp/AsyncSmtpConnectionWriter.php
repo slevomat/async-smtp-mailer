@@ -180,12 +180,12 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 
 		$dataProcessingPromise = $this->dataProcessingPromise !== null ? $this->dataProcessingPromise->promise() : resolve(null);
 		$dataProcessingPromise->then(function () use ($exceptionMessage, $previousException): void {
-			if (count($this->expectedResponses) <= 0) {
+			if (count($this->expectedResponses) === 0) {
 				return;
 			}
 
 			while (count($this->expectedResponses) > 0) {
-				[$deferred] = array_shift($this->expectedResponses);
+				[$deferred, , $message, $messageReplacement] = array_shift($this->expectedResponses);
 				if ($deferred === null) {
 					continue;
 				}
@@ -193,6 +193,8 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 				// preventing falsely positive 'Unhandled promise rejection'
 				$deferred->promise()->catch(static function (): void {
 				});
+
+				$exceptionMessage = sprintf('%s Original message: "%s"', $exceptionMessage, $messageReplacement ?? $message);
 
 				$deferred->reject(new AsyncSmtpConnectionException($exceptionMessage, 0, $previousException));
 			}

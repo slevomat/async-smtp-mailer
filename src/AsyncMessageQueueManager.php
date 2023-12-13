@@ -109,7 +109,7 @@ class AsyncMessageQueueManager
 		)->then(
 			function () use ($requestsCounter) {
 				if ($this->shouldReconnect()) {
-					return $this->reconnect($requestsCounter);
+					return $this->disconnect($requestsCounter);
 				}
 
 				return resolve(true);
@@ -117,6 +117,7 @@ class AsyncMessageQueueManager
 		)->then(
 			function () use ($requestsCounter) {
 				$this->log('started', $requestsCounter);
+				$this->log('connecting', $requestsCounter);
 
 				return $this->asyncConnectionManager->connect();
 			},
@@ -127,6 +128,7 @@ class AsyncMessageQueueManager
 				return $this->minIntervalPromise->then(static fn () => resolve($result));
 			},
 			function (Throwable $exception) use ($requestsCounter): PromiseInterface {
+				$this->log($exception->getMessage(), $requestsCounter);
 				$this->log('connection failed', $requestsCounter);
 				$this->finishWithError($exception, $requestsCounter);
 
@@ -146,6 +148,7 @@ class AsyncMessageQueueManager
 				$this->finishWithSuccess($requestsCounter);
 			},
 			function (Throwable $exception) use ($requestsCounter): PromiseInterface {
+				$this->log($exception->getMessage(), $requestsCounter);
 				$this->log('sending failed', $requestsCounter);
 				$this->forceReconnect = true;
 				$this->finishWithError($exception, $requestsCounter);
@@ -200,9 +203,9 @@ class AsyncMessageQueueManager
 			|| $this->forceReconnect;
 	}
 
-	private function reconnect(int $requestsCounter): PromiseInterface
+	private function disconnect(int $requestsCounter): PromiseInterface
 	{
-		$this->log('reconnecting started', $requestsCounter);
+		$this->log('disconnecting started', $requestsCounter);
 		$this->forceReconnect = false;
 
 		return $this->asyncConnectionManager->disconnect()->then(function (): PromiseInterface {
