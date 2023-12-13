@@ -70,6 +70,18 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		new AsyncSmtpConnectionWriter($connectionMock, $this->logger);
 	}
 
+	public function testFailedWriteThrowsException(): void
+	{
+		$this->expectException(InvalidSmtpConnectionException::class);
+		$this->expectExceptionMessage('Write failed: "AUTH LOGIN".');
+
+		$connectionMock = $this->createConnectionMock();
+		$connectionMock->method('write')->willReturn(false);
+
+		$writer = new AsyncSmtpConnectionWriter($connectionMock, $this->logger);
+		$writer->write(new AsyncSingleResponseMessage('AUTH LOGIN', [334]));
+	}
+
 	public function testUnexpectedConnectionEndFromServer(): void
 	{
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock(), $this->logger);
