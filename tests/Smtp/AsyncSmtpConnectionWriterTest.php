@@ -33,6 +33,8 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	/** @var Throwable|false|null **/
 	private $exception;
 
+	private ?int $code;
+
 	private ?Closure $doOnData = null;
 
 	private ?Closure $doOnEnd = null;
@@ -177,12 +179,14 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	public function testSuccessfulWrites(
 		AsyncMessage $message,
 		?string $actualFirstResponse = null,
-		?string $actualSecondResponse = null
+		?string $actualSecondResponse = null,
 	): void
 	{
+		$this->code = null;
 		$writer = new AsyncSmtpConnectionWriter($this->createConnectionMock($message->getText()), $this->logger);
 		$writer->write($message)->then(
-			function (): void {
+			function (int $code): void {
+				$this->code = $code;
 				$this->exception = false;
 			},
 			function (Throwable $exception): void {
@@ -297,6 +301,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 		?string $secondResponse = null
 	): void
 	{
+		$this->code = null;
 		$startTime = time();
 		$this->loop->addPeriodicTimer(self::DEFAULT_INTERVAL_IN_SECONDS, function () use ($startTime, $firstResponse, $secondResponse): void {
 			if (time() - $startTime > self::MAX_LOOP_EXECUTION_TIME) {
@@ -307,11 +312,17 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 			if (count($this->serverResponses) === 0) {
 				$this->serverResponses[] = $firstResponse;
 				($this->doOnData)($firstResponse);
+				if ($secondResponse === null) {
+					self::assertSame((int) $firstResponse, $this->code);
+				}
+				$this->code = null;
 			}
 			if (count($this->serverResponses) === 1 && $secondResponse !== null) {
 				$this->serverResponses[] = $secondResponse;
 				($this->doOnData)($secondResponse);
+				self::assertSame((int) $secondResponse, $this->code);
 			}
+
 			if ($this->exception === null) {
 				return;
 			}
@@ -320,8 +331,6 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 			if ($this->exception instanceof Throwable) {
 				throw $this->exception;
 			}
-
-			$this->assertTrue(true);
 		});
 
 		$this->loop->run();
