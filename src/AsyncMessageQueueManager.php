@@ -133,9 +133,10 @@ class AsyncMessageQueueManager
 				return reject($exception);
 			},
 		)->then(
-			fn (AsyncConnectionResult $result) => $this->asyncMessageSender->sendMessage($result->getWriter(), $message)->then(static fn () => resolve($result)),
+			fn (AsyncConnectionResult $result) => $this->asyncMessageSender->sendMessage($result->getWriter(), $message)->then(static fn ($code) => resolve([$result, $code])),
 		)->then(
-			function (AsyncConnectionResult $result) use ($requestsCounter): void {
+			function (array $details) use ($requestsCounter): PromiseInterface {
+				[$result, $code] = $details;
 				if ($result->hasConnectedToServer()) {
 					self::$sentMessagesCount = 1;
 				} else {
@@ -143,7 +144,9 @@ class AsyncMessageQueueManager
 				}
 				$this->log('sending ok', $requestsCounter);
 				$this->lastSentMessageTime = time();
-				$this->finishWithSuccess($requestsCounter);
+				$this->finishWithSuccess($requestsCounter, $code);
+
+				return resolve($code);
 			},
 			function (Throwable $exception) use ($requestsCounter): PromiseInterface {
 				$this->log('sending failed', $requestsCounter);
@@ -185,10 +188,10 @@ class AsyncMessageQueueManager
 		$this->minIntervalPromise = resolve(true);
 	}
 
-	private function finishWithSuccess(int $requestsCounter): void
+	private function finishWithSuccess(int $requestsCounter, int $code): void
 	{
 		unset($this->messageQueue[$requestsCounter]);
-		$this->processingRequests[$requestsCounter]->resolve(null);
+		$this->processingRequests[$requestsCounter]->resolve($code);
 
 		$this->minIntervalPromise = $this->promiseTimer->wait($this->minIntervalBetweenMessages);
 	}

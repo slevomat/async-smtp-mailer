@@ -142,7 +142,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 		$code = (int) $data;
 		if (in_array($code, $expectedCodes, true)) {
 			$this->logger->debug('code OK');
-			$deferred->resolve(null);
+			$deferred->resolve($code);
 
 		} else {
 			$this->logger->debug('code WRONG');

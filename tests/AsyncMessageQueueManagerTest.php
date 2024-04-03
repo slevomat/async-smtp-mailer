@@ -2,6 +2,7 @@
 
 namespace AsyncConnection;
 
+use AsyncConnection\Smtp\SmtpCode;
 use AsyncConnection\Timer\PromiseTimer;
 use Closure;
 use Exception;
@@ -70,7 +71,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 			->willReturn(resolve(new AsyncConnectionResult($this->writerMock, true)));
 
 		$this->senderMock->method('sendMessage')
-			->willReturn(resolve(null));
+			->willReturn(resolve(SmtpCode::OK));
 
 		$this->runSuccessfulSendingTest($this->createManager(), 'message');
 	}
@@ -122,7 +123,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 			->willReturn(reject(new Exception('Unexpected error')));
 
 		$this->senderMock->method('sendMessage')
-			->willReturn(resolve(null));
+			->willReturn(resolve(SmtpCode::OK));
 
 		$assertOnFail = function (Throwable $e): void {
 			$this->assertSame('Unexpected error', $e->getMessage());
@@ -142,7 +143,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 			->willReturn(reject(new AsyncConnectionException('Connection failed')));
 
 		$this->senderMock->method('sendMessage')
-			->willReturn(resolve(null));
+			->willReturn(resolve(SmtpCode::OK));
 
 		$assertOnFail = function (Throwable $e): void {
 			$this->assertInstanceOf(AsyncConnectionException::class, $e);
@@ -172,7 +173,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 					$deferred = new Deferred();
 
 					$this->loop->addTimer(5, static function () use ($deferred): void {
-						$deferred->resolve(null);
+						$deferred->resolve(SmtpCode::OK);
 					});
 
 					return $deferred->promise();
@@ -253,7 +254,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 			->willReturn(resolve(new AsyncConnectionResult($this->writerMock, true)));
 
 		$this->senderMock->method('sendMessage')
-			->willReturn(resolve(null));
+			->willReturn(resolve(SmtpCode::OK));
 
 		$manager = $this->createManager();
 
@@ -296,7 +297,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 			});
 
 		$this->senderMock->method('sendMessage')
-			->willReturn(resolve(null));
+			->willReturn(resolve(SmtpCode::OK));
 
 		$asserts = function (array $exceptions, AsyncMessageQueueManager $manager): void {
 			$this->assertSame('Unexpected error', $exceptions['first']->getMessage());
@@ -323,7 +324,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 		$this->senderMock->method('sendMessage')
 			->willReturnCallback(fn (): PromiseInterface => $this->connectsCount === 1
 					? reject(new AsyncConnectionException('Sending failed'))
-					: resolve(null));
+					: resolve(SmtpCode::OK));
 
 		$asserts = function (array $exceptions, AsyncMessageQueueManager $manager): void {
 			$this->assertInstanceOf(AsyncConnectionException::class, $exceptions['first']);
@@ -400,7 +401,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 	): void
 	{
 		$this->senderMock->method('sendMessage')
-			->willReturn(resolve(null));
+			->willReturn(resolve(SmtpCode::OK));
 
 		$this->connectionManagerMock
 			->method('connect')
