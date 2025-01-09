@@ -115,7 +115,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 		?Closure $assertOnSuccess = null
 	): void
 	{
-		$sender = new AsyncSmtpMessageSender();
+		$sender = new AsyncSmtpMessageSender($this->getLogger());
 		$sender->sendMessage($this->writerMock, $message)
 			->then(
 				function (): void {
@@ -135,7 +135,7 @@ class AsyncSmtpMessageSenderTest extends TestCase
 		Closure $assertOnFail
 	): void
 	{
-		$sender = new AsyncSmtpMessageSender();
+		$sender = new AsyncSmtpMessageSender($this->getLogger());
 		$sender->sendMessage($this->writerMock, $message)
 			->then(
 				function (): void {
