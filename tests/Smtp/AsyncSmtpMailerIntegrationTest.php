@@ -90,7 +90,7 @@ class AsyncSmtpMailerIntegrationTest extends IntegrationTestCase
 			$this->getSettings()->getSmtpSettings(),
 		);
 
-		$sender = new AsyncSmtpMessageSender();
+		$sender = new AsyncSmtpMessageSender($this->logger);
 
 		return new AsyncMessageQueueManager(
 			$sender,
