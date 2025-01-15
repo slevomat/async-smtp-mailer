@@ -8,8 +8,10 @@ use AsyncConnection\AsyncMessageSender;
 use InvalidArgumentException;
 use Nette\Mail\Message;
 use React\Promise\PromiseInterface;
+use function array_filter;
 use function array_keys;
 use function array_merge;
+use function array_unique;
 use function key;
 use function preg_replace;
 use function React\Promise\resolve;
@@ -30,32 +32,36 @@ class AsyncSmtpMessageSender implements AsyncMessageSender
 
 		return $writer->write($mailFromMessage)
 			->then(static function () use ($message, $writer) {
-				$recipients = array_merge(
+				$recipients = array_filter(array_unique(array_keys(array_merge(
 					(array) $message->getHeader('To'),
 					(array) $message->getHeader('Cc'),
 					(array) $message->getHeader('Bcc'),
-				);
-
-				$previousPromise = resolve(null);
-				foreach (array_keys($recipients, null, true) as $email) {
-					$previousPromise = $previousPromise->then(static function () use ($email, $writer) {
-						$message = sprintf('RCPT TO:<%s>', $email);
-						$recipientMessage = new AsyncSingleResponseMessage($message, [SmtpCode::OK, SmtpCode::FORWARD]);
-
-						return $writer->write($recipientMessage);
-					});
+				))));
+				if ($recipients === []) {
+					throw new MissingRecipientsException();
 				}
 
-				return $previousPromise;
-			})
-			->then(static fn () => $writer->write(new AsyncSingleResponseMessage('DATA', [SmtpCode::START_MAIL])))
-			->then(static function () use ($message, $writer) {
-				$data = $message->generateMessage();
-				$data = preg_replace('#^\.#m', '..', $data);
+				$previousPromise = resolve(null);
+				foreach ($recipients as $email) {
+					if ($email === '') {
+						continue;
+					}
 
-				return $writer->write(new AsyncZeroResponseMessage($data));
-			})
-			->then(static fn () => $writer->write(new AsyncSingleResponseMessage('.', [SmtpCode::OK])));
+					$text = sprintf('RCPT TO:<%s>', $email);
+					$recipientMessage = new AsyncSingleResponseMessage($text, [SmtpCode::OK, SmtpCode::FORWARD]);
+					$previousPromise = $previousPromise->then(static fn () => $writer->write($recipientMessage));
+				}
+
+				return $previousPromise
+					->then(static fn () => $writer->write(new AsyncSingleResponseMessage('DATA', [SmtpCode::START_MAIL])))
+					->then(static function () use ($message, $writer) {
+						$data = $message->generateMessage();
+						$data = preg_replace('#^\.#m', '..', $data);
+
+						return $writer->write(new AsyncZeroResponseMessage($data));
+					})
+					->then(static fn () => $writer->write(new AsyncSingleResponseMessage('.', [SmtpCode::OK])));
+			});
 	}
 
 }

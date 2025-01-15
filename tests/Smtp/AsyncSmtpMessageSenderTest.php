@@ -103,9 +103,9 @@ class AsyncSmtpMessageSenderTest extends TestCase
 		};
 
 		$message = $this->createMessage();
-		$message->setHeader('To', ['aa@seznam.cz' => null, 'bb@seznam.cz' => null]);
-		$message->setHeader('Cc', ['cc@seznam.cz' => null, 'dd@seznam.cz' => null]);
-		$message->setHeader('Bcc', ['ee@seznam.cz' => null, 'ff@seznam.cz' => null]);
+		$message->setHeader('To', ['aa@seznam.cz' => 'AAA BBB', 'bb@seznam.cz' => null]);
+		$message->setHeader('Cc', ['cc@seznam.cz' => null, 'dd@seznam.cz' => 'DDD EEE']);
+		$message->setHeader('Bcc', ['ee@seznam.cz' => 'EEE FFF', 'ff@seznam.cz' => 'GGG HHH']);
 
 		$this->runSuccessfulSendingTest($message, $assertOnSuccess);
 	}
