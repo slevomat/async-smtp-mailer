@@ -92,7 +92,10 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 				$message->getTextReplacement(),
 			];
 
-			$this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+			$result = $this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+			if ($result === false) {
+				throw new InvalidSmtpConnectionException('Write failed.');
+			}
 
 			return $firstResponse->promise()
 				->then(static fn () => $secondResponse->promise())
@@ -101,7 +104,10 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 		}
 
 		$deferred = new Deferred();
-		$this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+		$result = $this->connection->write(sprintf('%s%s', $message->getText(), Message::EOL));
+		if ($result === false) {
+			throw new InvalidSmtpConnectionException('Write failed.');
+		}
 
 		if ($message instanceof AsyncSingleResponseMessage) {
 			$this->expectedResponses[] = [
