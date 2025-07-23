@@ -2,7 +2,6 @@
 
 namespace AsyncConnection;
 
-use AsyncConnection\Timer\PromiseTimer;
 use Psr\Log\LoggerInterface;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
@@ -12,6 +11,7 @@ use function array_values;
 use function count;
 use function React\Promise\reject;
 use function React\Promise\resolve;
+use function React\Promise\Timer\sleep as sleepAsync;
 use function sprintf;
 use function time;
 
@@ -29,8 +29,6 @@ class AsyncMessageQueueManager
 	private AsyncConnectionManager $asyncConnectionManager;
 
 	private LoggerInterface $logger;
-
-	private PromiseTimer $promiseTimer;
 
 	/** @var array<int, AsyncMessage> */
 	private array $messageQueue = [];
@@ -56,7 +54,6 @@ class AsyncMessageQueueManager
 		AsyncMessageSender $asyncMessageSender,
 		AsyncConnectionManager $asyncConnectionManager,
 		LoggerInterface $logger,
-		PromiseTimer $promiseTimer,
 		?float $maxIntervalBetweenMessages = null,
 		?int $maxMessagesPerConnection = null,
 		?float $minIntervalBetweenMessages = null
@@ -65,7 +62,6 @@ class AsyncMessageQueueManager
 		$this->asyncMessageSender = $asyncMessageSender;
 		$this->asyncConnectionManager = $asyncConnectionManager;
 		$this->logger = $logger;
-		$this->promiseTimer = $promiseTimer;
 		$this->maxIntervalBetweenMessages = $maxIntervalBetweenMessages ?? self::MAX_INTERVAL_BETWEEN_MESSAGES;
 		$this->minIntervalBetweenMessages = $minIntervalBetweenMessages ?? self::MIN_INTERVAL_BETWEEN_MESSAGES;
 		$this->maxMessagesPerConnection = $maxMessagesPerConnection ?? self::MAX_MESSAGES_PER_CONNECTION;
@@ -193,7 +189,7 @@ class AsyncMessageQueueManager
 		unset($this->messageQueue[$requestsCounter]);
 		$this->processingRequests[$requestsCounter]->resolve($code);
 
-		$this->minIntervalPromise = $this->promiseTimer->wait($this->minIntervalBetweenMessages);
+		$this->minIntervalPromise = sleepAsync($this->minIntervalBetweenMessages);
 	}
 
 	private function shouldReconnect(): bool

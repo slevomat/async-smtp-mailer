@@ -3,7 +3,6 @@
 namespace AsyncConnection;
 
 use AsyncConnection\Smtp\SmtpCode;
-use AsyncConnection\Timer\PromiseTimer;
 use Closure;
 use Exception;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -346,7 +345,6 @@ class AsyncMessageQueueManagerTest extends TestCase
 			$this->senderMock,
 			$this->connectionManagerMock,
 			$this->logger,
-			new PromiseTimer($this->loop),
 			$maxIntervalBetweenMessages,
 			$maxMessagesPerConnection,
 			$minIntervalBetweenMessages,
