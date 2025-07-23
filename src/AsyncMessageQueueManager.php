@@ -33,7 +33,7 @@ class AsyncMessageQueueManager
 	/** @var array<int, AsyncMessage> */
 	private array $messageQueue = [];
 
-	/** @var array<Deferred> */
+	/** @var array<Deferred<int>> */
 	private array $processingRequests = [];
 
 	private float $maxIntervalBetweenMessages;
@@ -48,6 +48,7 @@ class AsyncMessageQueueManager
 
 	private bool $forceReconnect = false;
 
+	/** @var PromiseInterface<void|null> */
 	private PromiseInterface $minIntervalPromise;
 
 	public function __construct(
@@ -65,9 +66,12 @@ class AsyncMessageQueueManager
 		$this->maxIntervalBetweenMessages = $maxIntervalBetweenMessages ?? self::MAX_INTERVAL_BETWEEN_MESSAGES;
 		$this->minIntervalBetweenMessages = $minIntervalBetweenMessages ?? self::MIN_INTERVAL_BETWEEN_MESSAGES;
 		$this->maxMessagesPerConnection = $maxMessagesPerConnection ?? self::MAX_MESSAGES_PER_CONNECTION;
-		$this->minIntervalPromise = resolve(true);
+		$this->minIntervalPromise = resolve(null);
 	}
 
+	/**
+	 * @return PromiseInterface<int|null>
+	 */
 	public function send(AsyncMessage $message): PromiseInterface
 	{
 		static $requestsCounter = 0;
@@ -79,10 +83,10 @@ class AsyncMessageQueueManager
 		$this->messageQueue[$requestsCounter] = $message;
 
 		if (count($this->messageQueue) === 1) {
-			$previousRequestPromise = resolve(null);
+			$previousRequestPromise = resolve(0);
 
 		} else {
-			/** @var Deferred $previousRequest */
+			/** @var Deferred<int> $previousRequest */
 			$previousRequest = array_values(array_slice($this->processingRequests, -1))[0];
 			$previousRequestPromise = $previousRequest->promise();
 			$this->log('waiting until previous request finishes ...', $requestsCounter);
@@ -181,7 +185,7 @@ class AsyncMessageQueueManager
 	{
 		unset($this->messageQueue[$requestsCounter]);
 		$this->processingRequests[$requestsCounter]->reject($exception);
-		$this->minIntervalPromise = resolve(true);
+		$this->minIntervalPromise = resolve(null);
 	}
 
 	private function finishWithSuccess(int $requestsCounter, int $code): void
@@ -199,6 +203,9 @@ class AsyncMessageQueueManager
 			|| $this->forceReconnect;
 	}
 
+	/**
+	 * @return PromiseInterface<bool>
+	 */
 	private function reconnect(int $requestsCounter): PromiseInterface
 	{
 		$this->log('reconnecting started', $requestsCounter);

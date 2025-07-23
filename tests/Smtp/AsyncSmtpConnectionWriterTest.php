@@ -129,7 +129,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	}
 
 	/**
-	 * @return list<array{0: AsyncDoubleResponseMessage, 1: string, 2?: string}>
+	 * @return list<array{0: AsyncMessage, 1: string, 2?: string}>
 	 */
 	public static function dataSuccessfulWrites(): array
 	{
@@ -201,7 +201,7 @@ class AsyncSmtpConnectionWriterTest extends TestCase
 	}
 
 	/**
-	 * @return list<array{0: AsyncDoubleResponseMessage, 1: string, 2: string|null, 3: string}>
+	 * @return list<array{0: AsyncMessage, 1: string, 2: string|null, 3: string}>
 	 */
 	public static function dataFailedWrites(): array
 	{

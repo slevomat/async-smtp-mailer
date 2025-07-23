@@ -167,7 +167,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 			});
 
 		$this->senderMock->method('sendMessage')
-			->will($this->returnCallback(
+			->willReturnCallback(
 				function (): PromiseInterface {
 					$deferred = new Deferred();
 
@@ -177,7 +177,7 @@ class AsyncMessageQueueManagerTest extends TestCase
 
 					return $deferred->promise();
 				},
-			));
+			);
 
 		$this->exceptions = [];
 
@@ -408,11 +408,11 @@ class AsyncMessageQueueManagerTest extends TestCase
 
 		$this->connectionManagerMock
 			->method('disconnect')
-			->will($this->returnCallback(function () {
+			->willReturnCallback(function () {
 				$this->disconnectsCount++;
 
 				return resolve(null);
-			}));
+			});
 
 		$this->disconnectsCount = 0;
 		$this->connectsCount = 0;

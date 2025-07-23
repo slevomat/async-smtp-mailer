@@ -30,6 +30,7 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 
 	private LoggerInterface $logger;
 
+	/** @var Deferred<null>|null */
 	private ?Deferred $dataProcessingPromise = null;
 
 	public function __construct(
@@ -66,6 +67,9 @@ class AsyncSmtpConnectionWriter implements AsyncConnectionWriter
 		return $this->connection->isReadable() && $this->connection->isWritable();
 	}
 
+	/**
+	 * @return PromiseInterface<int|null>
+	 */
 	public function write(AsyncMessage $message): PromiseInterface
 	{
 		$this->logger->debug($message->getText());

@@ -15,8 +15,10 @@ class AsyncConnectionManager
 
 	private AsyncConnector $asyncConnector;
 
+	/** @var Deferred<null>|null */
 	private ?Deferred $connectionPromise = null;
 
+	/** @var Deferred<null>|null */
 	private ?Deferred $disconnectionPromise = null;
 
 	private ?AsyncConnectionWriter $writer = null;
@@ -32,6 +34,9 @@ class AsyncConnectionManager
 		$this->logger = $logger;
 	}
 
+	/**
+	 * @return PromiseInterface<AsyncConnectionResult|bool|null>
+	 */
 	public function connect(): PromiseInterface
 	{
 		if ($this->isConnected() && !$this->isDisconnecting()) {
@@ -95,6 +100,9 @@ class AsyncConnectionManager
 		}, $doAfterFailedDisconnect)->catch(static fn (Throwable $e) => reject($e));
 	}
 
+	/**
+	 * @return PromiseInterface<bool|string|null>
+	 */
 	public function disconnect(): PromiseInterface
 	{
 		if ($this->isDisconnecting()) {
