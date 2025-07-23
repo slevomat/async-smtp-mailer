@@ -7,7 +7,6 @@ use AsyncConnection\AsyncMessageQueueManager;
 use AsyncConnection\AsyncTestTrait;
 use AsyncConnection\Connector\ConnectorFactory;
 use AsyncConnection\IntegrationTestCase;
-use AsyncConnection\Timer\PromiseTimer;
 use Exception;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory;
@@ -96,7 +95,6 @@ class AsyncSmtpMailerIntegrationTest extends IntegrationTestCase
 			$sender,
 			$managerFactory->create(),
 			$this->logger,
-			new PromiseTimer($this->loop),
 		);
 	}
 
