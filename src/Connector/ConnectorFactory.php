@@ -2,6 +2,7 @@
 
 namespace AsyncConnection\Connector;
 
+use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 use React\Socket\ConnectorInterface;
 use React\Socket\SecureConnector;
@@ -25,13 +26,13 @@ class ConnectorFactory
 	 * @param array<array<mixed>> $context
 	 */
 	public function __construct(
-		LoopInterface $loop,
+		?LoopInterface $loop = null,
 		bool $useSecureConnector = false,
 		array $context = [],
 		?int $timeoutInSeconds = null
 	)
 	{
-		$this->loop = $loop;
+		$this->loop = $loop ?: Loop::get();
 		$this->useSecureConnector = $useSecureConnector;
 		$this->context = $context;
 		$this->timeoutInSeconds = $timeoutInSeconds ?? self::DEFAULT_TIMEOUT_IN_SECONDS;
