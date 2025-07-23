@@ -62,6 +62,7 @@ class TcpConnector implements ConnectorInterface
 
 	/**
 	 * @param resource $stream
+	 * @return Promise<Connection>
 	 */
 	private function waitForStreamOnce($stream): Promise
 	{

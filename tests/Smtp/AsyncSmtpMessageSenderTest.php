@@ -31,7 +31,6 @@ class AsyncSmtpMessageSenderTest extends TestCase
 
 	protected function setUp(): void
 	{
-		/** @var AsyncSmtpConnectionWriter|MockObject $writerMock */
 		$writerMock = $this->createMock(AsyncSmtpConnectionWriter::class);
 		$writerMock->method('isValid')->willReturn(true);
 		$this->writerMock = $writerMock;
@@ -83,14 +82,14 @@ class AsyncSmtpMessageSenderTest extends TestCase
 	public function testMultipleRecipients(): void
 	{
 		$this->writerMock->method('write')
-			->will($this->returnCallback(function (AsyncMessage $message): PromiseInterface {
+			->willReturnCallback(function (AsyncMessage $message): PromiseInterface {
 				$matches = Strings::match($message->getText(), '~RCPT TO:\s?\<(?<recipient>[^>]+)\>~i');
 				if ($matches !== null) {
 					$this->recipients[] = $matches['recipient'];
 				}
 
 				return resolve(null);
-			}));
+			});
 
 		$assertOnSuccess = function (): void {
 			$this->assertCount(6, $this->recipients);

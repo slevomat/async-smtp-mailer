@@ -20,6 +20,9 @@ use function sprintf;
 class AsyncSmtpMessageSender implements AsyncMessageSender
 {
 
+	/**
+	 * @return PromiseInterface<int|null>
+	 */
 	public function sendMessage(AsyncConnectionWriter $writer, AsyncMessage $message): PromiseInterface
 	{
 		if (!$message instanceof Message) {
@@ -43,10 +46,6 @@ class AsyncSmtpMessageSender implements AsyncMessageSender
 
 				$previousPromise = resolve(null);
 				foreach ($recipients as $email) {
-					if ($email === '') {
-						continue;
-					}
-
 					$text = sprintf('RCPT TO:<%s>', $email);
 					$recipientMessage = new AsyncSingleResponseMessage($text, [SmtpCode::OK, SmtpCode::FORWARD]);
 					$previousPromise = $previousPromise->then(static fn () => $writer->write($recipientMessage));

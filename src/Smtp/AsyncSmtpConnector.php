@@ -33,6 +33,9 @@ class AsyncSmtpConnector implements AsyncConnector
 		$this->smtpSettings = $smtpSettings;
 	}
 
+	/**
+	 * @return PromiseInterface<AsyncConnectionWriter>
+	 */
 	public function connect(): PromiseInterface
 	{
 		return $this->connector->connect(sprintf('%s:%d', $this->smtpSettings->getHost(), $this->smtpSettings->getPort()))
@@ -44,11 +47,17 @@ class AsyncSmtpConnector implements AsyncConnector
 			->catch(static fn (Throwable $e) => reject($e));
 	}
 
+	/**
+	 * @return PromiseInterface<int|null>
+	 */
 	public function disconnect(AsyncConnectionWriter $writer): PromiseInterface
 	{
 		return $writer->write(new AsyncSingleResponseMessage('QUIT', [SmtpCode::DISCONNECTING]));
 	}
 
+	/**
+	 * @return PromiseInterface<AsyncSmtpConnectionWriter>
+	 */
 	private function greetServer(AsyncSmtpConnectionWriter $writer): PromiseInterface
 	{
 		$self = $this->smtpSettings->getHello();
@@ -62,6 +71,9 @@ class AsyncSmtpConnector implements AsyncConnector
 			})->then(static fn () => resolve($writer));
 	}
 
+	/**
+	 * @return PromiseInterface<AsyncSmtpConnectionWriter>
+	 */
 	private function loginToServer(AsyncSmtpConnectionWriter $writer): PromiseInterface
 	{
 		if ($this->smtpSettings->getUsername() !== null && $this->smtpSettings->getPassword() !== null) {

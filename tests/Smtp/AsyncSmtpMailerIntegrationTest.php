@@ -105,7 +105,7 @@ class AsyncSmtpMailerIntegrationTest extends IntegrationTestCase
 		$message = new MailMessage();
 		$message->setFrom($settings->getEmailFrom());
 		$message->setSubject($subject);
-		$message->setHeader('To', [$settings->getTestInboxSettings()->getUsername() => null]);
+		$message->setHeader('To', ['text@example.com' => null]);
 		$message->setBody('HI THERE!');
 
 		return $message;
